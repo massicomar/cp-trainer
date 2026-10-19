@@ -1,18 +1,13 @@
-# Same file locally and on the VPS; only .env.docker differs (see .env.docker.example).
+# On the VPS: only `app` runs. It joins the shared `web-network`, and the Caddy
+# in ~/sites/caddy reaches it as cp-trainer:3333 (see docs/deploy.md).
+#
+# Locally: `docker compose --profile local up -d --build` also starts a Caddy of
+# our own, so you can test the full HTTPS path at https://localhost.
+# One-time setup on any machine: docker network create web-network
 services:
-  caddy:
-    image: caddy:2
-    restart: unless-stopped
-    ports: ['80:80', '443:443', '443:443/udp']
-    env_file: .env.docker # Caddy reads APP_URL as its site address
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on: [app]
-
   app:
     build: .
+    container_name: cp-trainer
     restart: unless-stopped
     init: true
     env_file: .env.docker
@@ -24,10 +19,11 @@ services:
       CONTENT_DIR: /content
     volumes:
       - app_data:/data
-      # The content repo checked out next to this one (/srv/cp-trainer-content
-      # on the VPS). Override with CONTENT_PATH if it lives elsewhere.
+      # The content repo checked out next to this one (on the VPS:
+      # ~/sites/cp-trainer/cp-trainer-content). Override with CONTENT_PATH if it lives elsewhere.
       - ${CONTENT_PATH:-../cp-trainer-content}:/content:ro
     expose: ['3333']
+    networks: [web-network]
     healthcheck:
       test:
         - CMD
@@ -39,7 +35,25 @@ services:
       start_period: 20s
       retries: 3
 
+  # Local testing only. On the VPS the shared Caddy owns ports 80/443.
+  caddy:
+    profiles: [local]
+    image: caddy:2
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    env_file: .env.docker # Caddy reads APP_URL as its site address
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [web-network]
+    depends_on: [app]
+
 volumes:
+  app_data: {}
   caddy_data: {}
   caddy_config: {}
-  app_data: {}
+
+networks:
+  web-network:
+    external: true

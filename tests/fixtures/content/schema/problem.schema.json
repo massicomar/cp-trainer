@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cp-trainer.local/schema/problem.schema.json",
+  "title": "CP Trainer problem",
+  "description": "One practice problem with its layered multiple-choice questions. File name must be <id>.json inside problems/<intended subject>/.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "id", "status", "title", "source", "url", "difficulty",
+    "summary", "constraints", "answers", "explanation", "deprecated"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "id": {
+      "description": "Permanent id, never renamed or reused. Convention: <source>-<problem code>, lowercase, e.g. cses-1158, cf-166b, atcoder-dp-e.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "maxLength": 64
+    },
+    "status": {
+      "description": "draft = not shown in the app yet (summary missing or unreviewed). ready = playable.",
+      "enum": ["draft", "ready"]
+    },
+    "title": {
+      "description": "Original problem title. Hidden from the player until the problem is finished.",
+      "type": "string", "minLength": 1
+    },
+    "source": {
+      "enum": ["CSES", "AtCoder", "Codeforces", "SPOJ", "Kattis", "LeetCode", "USACO", "Timus", "Other"]
+    },
+    "url": { "type": "string", "format": "uri", "pattern": "^https?://" },
+    "difficulty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "scale", "value"],
+      "properties": {
+        "tier": {
+          "description": "What the app filters on.",
+          "enum": ["easy", "medium", "hard"]
+        },
+        "scale": {
+          "description": "Where 'value' comes from. 'estimate' = our own guess (CSES and AtCoder DP have no official ratings).",
+          "enum": ["cf", "usaco", "kattis", "leetcode", "estimate", "other"]
+        },
+        "value": {
+          "description": "e.g. '1700' (cf), 'E' / 'M' / 'H' (usaco or estimate), '3.6' (kattis).",
+          "type": "string", "minLength": 1
+        }
+      }
+    },
+    "summary": {
+      "description": "Our own 2–4 sentence paraphrase of the statement. Never copy the original. Must not name the technique. May be empty only while status is draft.",
+      "type": "string"
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "verified"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "verified": {
+          "description": "true once someone re-checked the limits on the judge page.",
+          "type": "boolean"
+        }
+      }
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subjects", "techniques"],
+      "properties": {
+        "subjects": { "$ref": "#/$defs/roleList" },
+        "techniques": { "$ref": "#/$defs/roleList" }
+      }
+    },
+    "appearsIn": {
+      "description": "Extra subjects whose sessions may show this problem. Use for distractors (e.g. a greedy problem that should appear in DP sessions). Defaults to the subjects in answers.",
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "distractors": {
+      "description": "Technique ids to prefer as wrong options in the technique layer.",
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "explanation": {
+      "description": "Shown after the technique layer: why this technique, in our own words.",
+      "type": "string", "minLength": 1
+    },
+    "traps": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "pairWith": {
+      "description": "Ids of 'same story, different constraints' problems. The lesson planner shows them back to back.",
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "extraLayers": {
+      "description": "Layers 3+. Layers 1 (subject) and 2 (technique) are generated from 'answers'.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/layer" }
+    },
+    "notes": {
+      "description": "Internal notes for authors. Never shown in the app.",
+      "type": "string"
+    },
+    "deprecated": {
+      "description": "Retire a problem by setting this to true. Never delete the file.",
+      "type": "boolean"
+    }
+  },
+  "if": { "properties": { "status": { "const": "ready" } } },
+  "then": { "properties": { "summary": { "type": "string", "minLength": 20 } } },
+  "$defs": {
+    "roleList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "role"],
+        "properties": {
+          "id": { "type": "string" },
+          "role": {
+            "description": "intended = the expected answer (exactly one). accepted = also fully correct. overkill = works, but heavier than needed.",
+            "enum": ["intended", "accepted", "overkill"]
+          }
+        }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "kind", "prompt", "options", "accepted", "explanation"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "kind": {
+          "enum": ["dp-state", "dp-transition", "complexity", "observation", "node-stores", "trap", "custom"]
+        },
+        "prompt": { "type": "string", "minLength": 1 },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z]$" },
+              "text": { "type": "string", "minLength": 1 },
+              "why": {
+                "description": "Shown if the player picks this option: why it's wrong (or an extra note for a correct one).",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "accepted": {
+          "description": "Option ids that count as correct.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z]$" },
+          "uniqueItems": true
+        },
+        "explanation": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

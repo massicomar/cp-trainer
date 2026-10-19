@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cp-trainer.local/schema/taxonomy.schema.json",
+  "title": "CP Trainer taxonomy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "subjects"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "subjects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "techniques"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+          "name": { "type": "string", "minLength": 1 },
+          "hidden": {
+            "description": "Hidden subjects can be answers but never appear as a session choice.",
+            "type": "boolean"
+          },
+          "techniques": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "name"],
+              "properties": {
+                "id": {
+                  "description": "<subject id>.<technique slug>",
+                  "type": "string",
+                  "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+(-[a-z0-9]+)*$"
+                },
+                "name": { "type": "string", "minLength": 1 },
+                "confusableWith": {
+                  "description": "Techniques people mix this one up with. Used as fallback wrong options.",
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "uniqueItems": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

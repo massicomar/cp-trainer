@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "fixtures:schema": "cp ../cp-trainer-content/schema/*.schema.json tests/fixtures/content/schema/"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -34,7 +35,8 @@
     "#database/*": "./database/*.js",
     "#tests/*": "./tests/*.js",
     "#start/*": "./start/*.js",
-    "#config/*": "./config/*.js"
+    "#config/*": "./config/*.js",
+    "#types/*": "./app/types/*.js"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^8.5.2",
@@ -64,6 +66,8 @@
     "@adonisjs/static": "^2.0.1",
     "@adonisjs/vite": "^6.0.2",
     "@vinejs/vine": "^4.4.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "better-sqlite3": "^13.0.3",
     "edge.js": "^6.5.1",
     "htmx.org": "^2.0.11",

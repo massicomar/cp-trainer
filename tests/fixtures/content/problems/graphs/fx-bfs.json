@@ -1,0 +1,19 @@
+{
+  "$schema": "../../schema/problem.schema.json",
+  "schemaVersion": 1,
+  "id": "fx-bfs",
+  "status": "ready",
+  "title": "Fixture Message Route",
+  "source": "CSES",
+  "url": "https://cses.fi/problemset/task/1667",
+  "difficulty": { "tier": "hard", "scale": "estimate", "value": "H" },
+  "summary": "Find a route between two computers that passes through as few others as possible.",
+  "constraints": { "text": "n ≤ 1e5, m ≤ 2e5", "verified": true },
+  "answers": {
+    "subjects": [{ "id": "graphs", "role": "intended" }],
+    "techniques": [{ "id": "graphs.bfs", "role": "intended" }]
+  },
+  "distractors": ["dp.linear"],
+  "explanation": "Unweighted edges: the first time you reach a node is along a shortest path.",
+  "deprecated": false
+}

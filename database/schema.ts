@@ -7,19 +7,126 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
-export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'updatedAt'] as const
-  $columns = UserSchema.$columns
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+export class LayerSchema extends BaseModel {
+  static $columns = ['accepted', 'deprecated', 'explanationMd', 'id', 'kind', 'options', 'position', 'problemId', 'prompt'] as const
+  $columns = LayerSchema.$columns
   @column()
-  declare email: string
+  declare accepted: any
   @column()
-  declare fullName: string | null
+  declare deprecated: boolean
+  @column()
+  declare explanationMd: string | null
   @column({ isPrimary: true })
-  declare id: number
-  @column({ serializeAs: null })
-  declare password: string
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  declare id: string
+  @column()
+  declare kind: string
+  @column()
+  declare options: any | null
+  @column()
+  declare position: number
+  @column()
+  declare problemId: string
+  @column()
+  declare prompt: string
+}
+
+export class ProblemAnswerSchema extends BaseModel {
+  static $columns = ['answerId', 'kind', 'problemId', 'role'] as const
+  $columns = ProblemAnswerSchema.$columns
+  @column()
+  declare answerId: string
+  @column()
+  declare kind: string
+  @column({ isPrimary: true })
+  declare problemId: string
+  @column()
+  declare role: string
+}
+
+export class ProblemSubjectSchema extends BaseModel {
+  static $columns = ['problemId', 'role', 'subjectId', 'via'] as const
+  $columns = ProblemSubjectSchema.$columns
+  @column({ isPrimary: true })
+  declare problemId: string
+  @column()
+  declare role: string | null
+  @column()
+  declare subjectId: string
+  @column()
+  declare via: string
+}
+
+export class ProblemSchema extends BaseModel {
+  static $columns = ['constraintsText', 'constraintsVerified', 'contentHash', 'deprecated', 'difficultyScale', 'difficultyValue', 'distractors', 'explanationMd', 'id', 'pairWith', 'source', 'sourcePath', 'status', 'summaryMd', 'syncedAt', 'tier', 'title', 'traps', 'url'] as const
+  $columns = ProblemSchema.$columns
+  @column()
+  declare constraintsText: string
+  @column()
+  declare constraintsVerified: boolean
+  @column()
+  declare contentHash: string
+  @column()
+  declare deprecated: boolean
+  @column()
+  declare difficultyScale: string
+  @column()
+  declare difficultyValue: string
+  @column()
+  declare distractors: any
+  @column()
+  declare explanationMd: string
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare pairWith: any
+  @column()
+  declare source: string
+  @column()
+  declare sourcePath: string
+  @column()
+  declare status: string
+  @column()
+  declare summaryMd: string
+  @column.dateTime()
+  declare syncedAt: DateTime
+  @column()
+  declare tier: string
+  @column()
+  declare title: string
+  @column()
+  declare traps: any
+  @column()
+  declare url: string
+}
+
+export class SubjectSchema extends BaseModel {
+  static $columns = ['deprecated', 'hidden', 'id', 'name', 'position'] as const
+  $columns = SubjectSchema.$columns
+  @column()
+  declare deprecated: boolean
+  @column()
+  declare hidden: boolean
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare name: string
+  @column()
+  declare position: number
+}
+
+export class TechniqueSchema extends BaseModel {
+  static $columns = ['confusableWith', 'deprecated', 'id', 'name', 'position', 'subjectId'] as const
+  $columns = TechniqueSchema.$columns
+  @column()
+  declare confusableWith: any
+  @column()
+  declare deprecated: boolean
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare name: string
+  @column()
+  declare position: number
+  @column()
+  declare subjectId: string
 }

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "subjects": [
+    {
+      "id": "dp",
+      "name": "Dynamic Programming",
+      "techniques": [
+        { "id": "dp.linear", "name": "Linear / 1D DP", "confusableWith": ["dp.coin-change", "other.greedy"] },
+        { "id": "dp.coin-change", "name": "Coin change", "confusableWith": ["dp.knapsack-01", "other.greedy"] },
+        { "id": "dp.knapsack-01", "name": "0/1 knapsack" },
+        { "id": "dp.dag", "name": "DP on a DAG", "confusableWith": ["graphs.toposort"] }
+      ]
+    },
+    {
+      "id": "graphs",
+      "name": "Graphs",
+      "techniques": [
+        { "id": "graphs.bfs", "name": "BFS" },
+        { "id": "graphs.toposort", "name": "Topological sort" }
+      ]
+    },
+    {
+      "id": "number-theory",
+      "name": "Number Theory",
+      "techniques": [{ "id": "number-theory.sieve", "name": "Sieve of Eratosthenes" }]
+    },
+    {
+      "id": "other",
+      "name": "None of these (greedy / ad hoc)",
+      "hidden": true,
+      "techniques": [
+        { "id": "other.greedy", "name": "Greedy" },
+        { "id": "other.ad-hoc", "name": "Ad hoc / math formula" }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,9 @@
-# APP_URL comes from .env.docker:
-#   https://localhost        local test, certificate from Caddy's own CA
-#   https://cp.example.com   VPS, certificate from Let's Encrypt
+# Local testing only (`docker compose --profile local up`). On the VPS, the
+# shared Caddy in ~/sites/caddy serves the app; its site block is in docs/deploy.md.
+#
+# APP_URL comes from .env.docker, normally https://localhost (certificate from
+# Caddy's own CA; accept the browser warning once).
 {$APP_URL} {
 	encode zstd gzip
-	reverse_proxy app:3333
+	reverse_proxy cp-trainer:3333
 }

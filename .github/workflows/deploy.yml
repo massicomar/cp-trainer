@@ -34,7 +34,10 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" /srv/cp-trainer/scripts/deploy.sh
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }} # the app checkout on the VPS
+        run: |
+          : "${DEPLOY_PATH:?Set the DEPLOY_PATH repository variable (see docs/deploy.md)}"
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "$DEPLOY_PATH/scripts/deploy.sh"
 
       - name: Check the public URL
         if: vars.APP_URL != ''

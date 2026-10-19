@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schema/problem.schema.json",
+  "schemaVersion": 1,
+  "id": "fx-longest-path",
+  "status": "draft",
+  "title": "Fixture Longest Path",
+  "source": "AtCoder",
+  "url": "https://atcoder.jp/contests/dp/tasks/dp_g",
+  "difficulty": { "tier": "medium", "scale": "estimate", "value": "M" },
+  "summary": "",
+  "constraints": { "text": "n, m ≤ 1e5, the graph has no cycles", "verified": false },
+  "answers": {
+    "subjects": [
+      { "id": "dp", "role": "intended" },
+      { "id": "graphs", "role": "accepted" },
+      { "id": "number-theory", "role": "accepted" }
+    ],
+    "techniques": [
+      { "id": "dp.dag", "role": "intended" },
+      { "id": "graphs.toposort", "role": "accepted" }
+    ]
+  },
+  "explanation": "Process vertices in topological order and extend the best path into each.",
+  "extraLayers": [],
+  "deprecated": false
+}

@@ -32,4 +32,7 @@ RUN mkdir -p /data && chown node:node /data
 USER node
 
 EXPOSE 3333
-CMD ["sh", "-c", "node ace migration:run --force && exec node bin/server.js"]
+# Migrations must succeed. A failed content sync (bad files in the content
+# repo) is logged but doesn't block startup: the app keeps serving the last
+# content that synced cleanly.
+CMD ["sh", "-c", "node ace migration:run --force && { node ace content:sync || echo 'content:sync failed; serving the last synced content' >&2; } && exec node bin/server.js"]
