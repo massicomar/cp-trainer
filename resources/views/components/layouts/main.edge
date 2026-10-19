@@ -1,0 +1,18 @@
+{{--
+  Page shell for every screen. HTMX requests carry the CSRF token through
+  hx-headers so Shield accepts them.
+--}}
+@let(pageTitle = $props.get('title'))
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ pageTitle ? `${pageTitle} · CP Trainer` : 'CP Trainer' }}</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+  </head>
+  <body hx-headers='{"x-csrf-token": "{{ csrfToken }}"}'>
+    <header class="site-header"><a href="{{ route('home') }}" class="brand">CP Trainer</a></header>
+    <main class="container">{{{ await $slots.main() }}}</main>
+  </body>
+</html>

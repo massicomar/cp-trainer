@@ -1,0 +1,12 @@
+node_modules
+build
+tmp
+public/assets
+.env
+.env.*
+!.env.example
+.git
+.github
+docs
+*.log
+.DS_Store

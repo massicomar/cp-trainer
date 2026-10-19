@@ -1,0 +1,45 @@
+# Same file locally and on the VPS; only .env.docker differs (see .env.docker.example).
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    env_file: .env.docker # Caddy reads APP_URL as its site address
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+
+  app:
+    build: .
+    restart: unless-stopped
+    init: true
+    env_file: .env.docker
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3333
+      DB_PATH: /data/app.db
+      CONTENT_DIR: /content
+    volumes:
+      - app_data:/data
+      # The content repo checked out next to this one (/srv/cp-trainer-content
+      # on the VPS). Override with CONTENT_PATH if it lives elsewhere.
+      - ${CONTENT_PATH:-../cp-trainer-content}:/content:ro
+    expose: ['3333']
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3333/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}
+  app_data: {}

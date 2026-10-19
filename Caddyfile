@@ -1,0 +1,7 @@
+# APP_URL comes from .env.docker:
+#   https://localhost        local test, certificate from Caddy's own CA
+#   https://cp.example.com   VPS, certificate from Let's Encrypt
+{$APP_URL} {
+	encode zstd gzip
+	reverse_proxy app:3333
+}
