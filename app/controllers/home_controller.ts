@@ -27,7 +27,7 @@ export default class HomeController {
       ? fromQuery
       : saved && this.selection.isComplete(saved)
         ? saved
-        : { subjects: visibleIds, tiers: TIERS }
+        : { subjects: visibleIds, tiers: TIERS, includeCommunity: true }
 
     const [count, perSubject] = await Promise.all([
       this.selection.count(current),

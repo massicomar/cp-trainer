@@ -3,33 +3,69 @@
   "schemaVersion": 1,
   "id": "fx-coins",
   "status": "ready",
+  "author": "massicomar",
+  "collection": "official",
   "title": "Fixture Coins",
   "source": "CSES",
   "url": "https://cses.fi/problemset/task/1634",
-  "difficulty": { "tier": "easy", "scale": "estimate", "value": "E" },
+  "difficulty": {
+    "tier": "easy",
+    "scale": "estimate",
+    "value": "E"
+  },
   "summary": "Given coin values and a target sum, find the fewest coins that add up to it.",
-  "constraints": { "text": "n ≤ 100, x ≤ 1e6", "verified": true },
+  "constraints": {
+    "text": "n ≤ 100, x ≤ 1e6",
+    "verified": true
+  },
   "answers": {
-    "subjects": [{ "id": "dp", "role": "intended" }],
+    "subjects": [
+      {
+        "id": "dp",
+        "role": "intended"
+      }
+    ],
     "techniques": [
-      { "id": "dp.coin-change", "role": "intended" },
-      { "id": "dp.linear", "role": "accepted" }
+      {
+        "id": "dp.coin-change",
+        "role": "intended"
+      },
+      {
+        "id": "dp.linear",
+        "role": "accepted"
+      }
     ]
   },
-  "distractors": ["dp.knapsack-01", "other.greedy"],
+  "distractors": [
+    "dp.knapsack-01",
+    "other.greedy"
+  ],
   "explanation": "Unbounded coins and a small target: dp over the sum.",
-  "traps": ["Largest coin first isn't optimal for arbitrary coin sets."],
-  "pairWith": ["fx-lottery"],
+  "traps": [
+    "Largest coin first isn't optimal for arbitrary coin sets."
+  ],
+  "pairWith": [
+    "fx-lottery"
+  ],
   "extraLayers": [
     {
       "key": "dp-state",
       "kind": "dp-state",
       "prompt": "What should the DP state represent?",
       "options": [
-        { "id": "a", "text": "dp[s] = fewest coins summing to s" },
-        { "id": "b", "text": "dp[i] = fewest coins using the first i coin types", "why": "Loses the sum." }
+        {
+          "id": "a",
+          "text": "dp[s] = fewest coins summing to s"
+        },
+        {
+          "id": "b",
+          "text": "dp[i] = fewest coins using the first i coin types",
+          "why": "Loses the sum."
+        }
       ],
-      "accepted": ["a"],
+      "accepted": [
+        "a"
+      ],
       "explanation": "Only the remaining sum matters."
     },
     {
@@ -37,10 +73,19 @@
       "kind": "dp-transition",
       "prompt": "Given that state, which transition is right?",
       "options": [
-        { "id": "a", "text": "dp[s] = 1 + min over coins c of dp[s − c]" },
-        { "id": "b", "text": "dp[s] = dp[s − largest coin] + 1", "why": "That's the greedy." }
+        {
+          "id": "a",
+          "text": "dp[s] = 1 + min over coins c of dp[s − c]"
+        },
+        {
+          "id": "b",
+          "text": "dp[s] = dp[s − largest coin] + 1",
+          "why": "That's the greedy."
+        }
       ],
-      "accepted": ["a"],
+      "accepted": [
+        "a"
+      ],
       "explanation": "The last coin is one of the n values."
     }
   ],

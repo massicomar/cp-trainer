@@ -1,0 +1,399 @@
+@layouts.main({ title: 'Contribute a problem' })
+  <h1>Contribute a problem</h1>
+  <p class="muted">
+    Fill in the form and the file updates as you type, checked the same way the content repo’s CI checks it. Then copy or download it into the content repo and open a pull request, or use "Open on GitHub". Nothing is saved on this site.
+    <a href="{{ repoUrl }}/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">
+      How to write a good problem
+    </a>
+  </p>
+  @if(notFound)
+    <p class="notice notice--error">
+      There’s no problem with the id "{{ notFound }}". Starting a new one instead.
+    </p>
+  @end
+  @if(editing)
+    <p class="notice">
+      Editing
+      <strong>{{ editing }}</strong>. Ids are permanent: changing it makes a new problem.
+    </p>
+  @end
+
+  <div class="builder">
+    <form
+      id="builder"
+      class="builder__form"
+      method="post"
+      action="/contribute"
+      hx-post="/contribute"
+      hx-trigger="input delay:500ms, change"
+      hx-target="#preview"
+      hx-swap="outerHTML"
+      data-rows-scope
+    >
+      {{ csrfField() }}
+      <input type="hidden" name="editing" value="{{ editing ?? '' }}" />
+
+      <fieldset class="builder__group">
+        <legend>The problem</legend>
+        <label class="field">
+          <span>
+            Id
+            <small>&lt;source&gt;-&lt;code&gt;, lowercase, permanent: cses-1158, cf-166b</small>
+          </span>
+          <input
+            name="id"
+            value="{{ problem.id }}"
+            class="input"
+            placeholder="cses-1158"
+            required
+          />
+        </label>
+        <label class="field">
+          <span>
+            Original title
+            <small>hidden from players until they finish the problem</small>
+          </span>
+          <input name="title" value="{{ problem.title }}" class="input" />
+        </label>
+        <div class="field-row">
+          <label class="field">
+            <span>Judge</span>
+            <select name="source" class="input">
+              @each(source in choices.sources)
+                <option value="{{ source }}" {{ source === problem.source ? 'selected' : '' }}>
+                  {{ source }}
+                </option>
+              @end
+            </select>
+          </label>
+          <label class="field field--wide">
+            <span>URL</span>
+            <input
+              name="url"
+              value="{{ problem.url }}"
+              class="input"
+              type="url"
+              placeholder="https://cses.fi/problemset/task/1158"
+            />
+          </label>
+        </div>
+        <div class="field-row">
+          <label class="field">
+            <span>Tier</span>
+            <select name="difficulty[tier]" class="input">
+              @each(tier in choices.tiers)
+                <option value="{{ tier }}" {{ tier === problem.difficulty.tier ? 'selected' : '' }}>
+                  {{ tier }}
+                </option>
+              @end
+            </select>
+          </label>
+          <label class="field">
+            <span>Rating scale</span>
+            <select name="difficulty[scale]" class="input">
+              @each(scale in choices.scales)
+                <option
+                  value="{{ scale }}"
+                  {{ scale === problem.difficulty.scale ? 'selected' : '' }}
+                >
+                  {{ scale }}
+                </option>
+              @end
+            </select>
+          </label>
+          <label class="field">
+            <span>Rating <small>1700, E/M/H, 3.6…</small></span>
+            <input name="difficulty[value]" value="{{ problem.difficulty.value }}" class="input" />
+          </label>
+        </div>
+        <div class="field-row">
+          <label class="field">
+            <span>Status</span>
+            <select name="status" class="input">
+              @each(status in ['draft', 'ready'])
+                <option value="{{ status }}" {{ status === problem.status ? 'selected' : '' }}>
+                  {{ status }}
+                </option>
+              @end
+            </select>
+          </label>
+          <label class="field">
+            <span>Collection</span>
+            <select name="collection" class="input">
+              @each(collection in ['community', 'official'])
+                <option
+                  value="{{ collection }}"
+                  {{ collection === problem.collection ? 'selected' : '' }}
+                >
+                  {{ collection }}
+                </option>
+              @end
+            </select>
+          </label>
+          <label class="field">
+            <span>Your GitHub username</span>
+            <input
+              name="author"
+              value="{{ problem.author }}"
+              class="input"
+              autocomplete="username"
+            />
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="builder__group">
+        <legend>What the player reads</legend>
+        <label class="field">
+          <span>
+            Statement
+            <small>
+              copied exactly from the judge, without the title, samples or limits. Keep its LaTeX ($N$, \leq).
+            </small>
+          </span>
+          <textarea name="summary" class="input" rows="10">{{ problem.summary }}</textarea>
+        </label>
+        <label class="field">
+          <span>Constraints <small>the main clue, so be exact</small></span>
+          <input
+            name="constraints[text]"
+            value="{{ problem.constraints.text }}"
+            class="input"
+            placeholder="n ≤ 2e5, values ≤ 1e9"
+          />
+        </label>
+        <label class="check">
+          <input
+            type="checkbox"
+            name="constraints[verified]"
+            {{ problem.constraints.verified ? 'checked' : '' }}
+          />
+          <span>I checked these limits on the judge page</span>
+        </label>
+      </fieldset>
+
+      <fieldset class="builder__group">
+        <legend>Answers</legend>
+        <p class="hint">
+          Exactly one intended subject and one intended technique inside it. Other correct approaches are accepted; ones that work but are heavier are overkill.
+        </p>
+
+        <p class="field-label">Subjects</p>
+        <div class="rows" data-rows="subjects" data-next="{{ problem.answers.subjects.length }}">
+          @each((answer, i) in problem.answers.subjects)
+            @!contribute.subjectRow({ index: i, answer, subjects, roles })
+          @end
+        </div>
+        <template data-row-template="subjects" data-placeholder="__i__">
+          @!contribute.subjectRow({
+            index: '__i__',
+            answer: { id: '', role: 'accepted' },
+            subjects,
+            roles,
+          })
+        </template>
+        <button type="button" class="link-button" data-add-row="subjects">+ Add subject</button>
+
+        <p class="field-label">Techniques</p>
+        <div
+          class="rows"
+          data-rows="techniques"
+          data-next="{{ problem.answers.techniques.length }}"
+        >
+          @each((answer, i) in problem.answers.techniques)
+            @!contribute.techniqueRow({
+              index: i,
+              answer,
+              groups: techniqueGroups,
+              roles,
+            })
+          @end
+        </div>
+        <template data-row-template="techniques" data-placeholder="__i__">
+          @!contribute.techniqueRow({
+            index: '__i__',
+            answer: { id: '', role: 'accepted' },
+            groups: techniqueGroups,
+            roles,
+          })
+        </template>
+        <button type="button" class="link-button" data-add-row="techniques">+ Add technique</button>
+
+        <p class="field-label">
+          Also show in sessions of
+          <small>(distractors: a greedy problem that should appear in DP sessions)</small>
+        </p>
+        <div class="chips">
+          @each(subject in subjects)
+            @if(!subject.hidden)
+              <label class="chip">
+                <input
+                  type="checkbox"
+                  name="appearsIn[]"
+                  value="{{ subject.id }}"
+                  {{
+                    (problem.appearsIn ?? []).includes(subject.id)
+                      ? 'checked'
+                      : ''
+                  }}
+                />
+                <span>{{ subject.name }}</span>
+              </label>
+            @end
+          @end
+        </div>
+      </fieldset>
+
+      <fieldset class="builder__group">
+        <legend>Wrong options and pairs</legend>
+        <p class="field-label">
+          Distractors
+          <small>techniques someone would plausibly but wrongly pick; any subject</small>
+        </p>
+        <div
+          class="rows"
+          data-rows="distractors"
+          data-next="{{ (problem.distractors ?? []).length }}"
+        >
+          @each(distractor in problem.distractors)
+            <div class="row" data-row>
+              @!contribute.techniqueSelect({
+                name: 'distractors[]',
+                selected: distractor,
+                groups: techniqueGroups,
+                label: 'Distractor',
+              })
+              <button type="button" class="row__remove" data-remove-row aria-label="Remove">
+                ×
+              </button>
+            </div>
+          @end
+        </div>
+        <template data-row-template="distractors" data-placeholder="__i__">
+          <div class="row" data-row>
+            @!contribute.techniqueSelect({
+              name: 'distractors[]',
+              selected: '',
+              groups: techniqueGroups,
+              label: 'Distractor',
+            })
+            <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+          </div>
+        </template>
+        <button type="button" class="link-button" data-add-row="distractors">
+          + Add distractor
+        </button>
+
+        <p class="field-label">Pair with <small>same story, different constraints</small></p>
+        <datalist id="problem-ids">
+          @each(id in problemIds)
+            <option value="{{ id }}"></option>
+          @end
+        </datalist>
+        <div class="rows" data-rows="pairWith" data-next="{{ (problem.pairWith ?? []).length }}">
+          @each(id in problem.pairWith)
+            <div class="row" data-row>
+              <input
+                name="pairWith[]"
+                value="{{ id }}"
+                class="input"
+                list="problem-ids"
+                aria-label="Problem id"
+              />
+              <button type="button" class="row__remove" data-remove-row aria-label="Remove">
+                ×
+              </button>
+            </div>
+          @end
+        </div>
+        <template data-row-template="pairWith" data-placeholder="__i__">
+          <div class="row" data-row>
+            <input name="pairWith[]" class="input" list="problem-ids" aria-label="Problem id" />
+            <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+          </div>
+        </template>
+        <button type="button" class="link-button" data-add-row="pairWith">+ Add pair</button>
+      </fieldset>
+
+      <fieldset class="builder__group">
+        <legend>After answering</legend>
+        <label class="field">
+          <span>
+            Explanation
+            <small>
+              why the intended technique fits; point at the constraint that gives it away
+            </small>
+          </span>
+          <textarea name="explanation" class="input" rows="3">{{ problem.explanation }}</textarea>
+        </label>
+        <p class="field-label">Traps <small>common bugs or wrong ideas</small></p>
+        <div class="rows" data-rows="traps" data-next="{{ (problem.traps ?? []).length }}">
+          @each(trap in problem.traps)
+            <div class="row" data-row>
+              <input name="traps[]" value="{{ trap }}" class="input" aria-label="Trap" />
+              <button type="button" class="row__remove" data-remove-row aria-label="Remove">
+                ×
+              </button>
+            </div>
+          @end
+        </div>
+        <template data-row-template="traps" data-placeholder="__i__">
+          <div class="row" data-row>
+            <input name="traps[]" class="input" aria-label="Trap" />
+            <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+          </div>
+        </template>
+        <button type="button" class="link-button" data-add-row="traps">+ Add trap</button>
+      </fieldset>
+
+      <fieldset class="builder__group">
+        <legend>Extra layers</legend>
+        <p class="hint">
+          DP problems get a state layer and a transition layer. Other kinds are optional.
+        </p>
+        <div class="rows" data-rows="layers" data-next="{{ (problem.extraLayers ?? []).length }}">
+          @each((layer, i) in problem.extraLayers)
+            @!contribute.layer({ index: i, layer, kinds: choices.kinds })
+          @end
+        </div>
+        <template data-row-template="layers" data-placeholder="__i__">
+          @!contribute.layer({ index: '__i__', layer: {}, kinds: choices.kinds })
+        </template>
+        <div class="presets">
+          <button
+            type="button"
+            class="link-button"
+            data-add-row="layers"
+            data-preset="{{ presets.dpState }}"
+          >
+            + DP state layer
+          </button>
+          <button
+            type="button"
+            class="link-button"
+            data-add-row="layers"
+            data-preset="{{ presets.dpTransition }}"
+          >
+            + DP transition layer
+          </button>
+          <button type="button" class="link-button" data-add-row="layers">+ Other layer</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="builder__group">
+        <legend>Other</legend>
+        <label class="field">
+          <span>Notes for authors <small>never shown to players</small></span>
+          <textarea name="notes" class="input" rows="2">{{ problem.notes ?? '' }}</textarea>
+        </label>
+        <label class="check">
+          <input type="checkbox" name="deprecated" {{ problem.deprecated ? 'checked' : '' }} />
+          <span>Retired (deprecated). Never delete a problem file; retire it instead.</span>
+        </label>
+      </fieldset>
+
+      <button type="submit" class="button">Update preview</button>
+    </form>
+    @include('partials/contribute_preview')
+  </div>
+@end

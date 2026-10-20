@@ -37,6 +37,8 @@ router.use([
   () => import('@adonisjs/session/session_middleware'),
   () => import('@adonisjs/shield/shield_middleware'),
   () => import('#middleware/player_middleware'),
+  () => import('#middleware/detect_user_locale_middleware'),
+  () => import('#middleware/theme_middleware'),
 ])
 
 /**

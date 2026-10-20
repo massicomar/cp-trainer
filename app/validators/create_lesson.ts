@@ -9,5 +9,7 @@ export const createLessonValidator = vine.compile(
   vine.object({
     subjects: vine.array(vine.string().trim()).minLength(1),
     tiers: vine.array(vine.enum(TIERS)).minLength(1),
+    // "official" leaves community-added problems out; anything else keeps them.
+    problems: vine.enum(['official', 'all']).optional(),
   })
 )

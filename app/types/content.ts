@@ -6,6 +6,7 @@
 export type AnswerRole = 'intended' | 'accepted' | 'overkill'
 export type Tier = 'easy' | 'medium' | 'hard'
 export type ProblemStatus = 'draft' | 'ready'
+export type Collection = 'official' | 'community'
 
 export interface RoleRef {
   id: string
@@ -31,6 +32,9 @@ export interface ProblemFile {
   schemaVersion: 1
   id: string
   status: ProblemStatus
+  /** GitHub username of whoever added the problem. */
+  author: string
+  collection: Collection
   title: string
   source: string
   url: string

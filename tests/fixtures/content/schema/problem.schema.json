@@ -6,8 +6,8 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schemaVersion", "id", "status", "title", "source", "url", "difficulty",
-    "summary", "constraints", "answers", "explanation", "deprecated"
+    "schemaVersion", "id", "status", "author", "collection", "title", "source", "url",
+    "difficulty", "summary", "constraints", "answers", "explanation", "deprecated"
   ],
   "properties": {
     "$schema": { "type": "string" },
@@ -21,6 +21,15 @@
     "status": {
       "description": "draft = not shown in the app yet (summary missing or unreviewed). ready = playable.",
       "enum": ["draft", "ready"]
+    },
+    "author": {
+      "description": "GitHub username of whoever added the problem. Shown to players as \"Added by @author\".",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$"
+    },
+    "collection": {
+      "description": "official = part of the curated set. community = added by a contributor; players can choose to leave these out. New problems start as community; maintainers promote them.",
+      "enum": ["official", "community"]
     },
     "title": {
       "description": "Original problem title. Hidden from the player until the problem is finished.",
@@ -50,7 +59,7 @@
       }
     },
     "summary": {
-      "description": "Our own 2–4 sentence paraphrase of the statement. Never copy the original. Must not name the technique. May be empty only while status is draft.",
+      "description": "The original statement, copied exactly from the judge (the app is for private use). Leave out the title, the samples and the limits (those go in constraints). Keep the judge's LaTeX ($N$, \\leq) as it is. May be empty only while status is draft.",
       "type": "string"
     },
     "constraints": {

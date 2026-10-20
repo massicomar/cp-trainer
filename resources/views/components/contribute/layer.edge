@@ -1,0 +1,57 @@
+{{--
+  One extra layer (DP state, DP transition, …). It's its own rows scope, so
+  "Add option" adds to this layer only.
+--}}
+@let(prefix = `layers[${$props.get('index')}]`)
+@let(layer = $props.get('layer') ?? {})
+@let(options = layer.options && layer.options.length ? layer.options : [{}, {}, {}, {}])
+@let(accepted = layer.accepted ?? [])
+<div class="layer-editor" data-row data-rows-scope>
+  <div class="layer-editor__head">
+    <label class="field">
+      <span>Key</span>
+      <input
+        name="{{ prefix }}[key]"
+        value="{{ layer.key ?? '' }}"
+        class="input"
+        placeholder="dp-state"
+      />
+    </label>
+    <label class="field">
+      <span>Kind</span>
+      <select name="{{ prefix }}[kind]" class="input">
+        @each(kind in $props.get('kinds'))
+          <option value="{{ kind }}" {{ kind === layer.kind ? 'selected' : '' }}>{{ kind }}</option>
+        @end
+      </select>
+    </label>
+    <button type="button" class="row__remove" data-remove-row>Remove layer</button>
+  </div>
+  <label class="field">
+    <span>Prompt</span>
+    <input name="{{ prefix }}[prompt]" value="{{ layer.prompt ?? '' }}" class="input" />
+  </label>
+  <p class="hint">Options are a, b, c… in this order. Tick the correct ones.</p>
+  <div class="rows" data-rows="options" data-next="{{ options.length }}">
+    @each((option, j) in options)
+      @!contribute.optionRow({
+        prefix,
+        index: j,
+        option,
+        correct: accepted.includes(option.id),
+      })
+    @end
+  </div>
+  <template data-row-template="options" data-placeholder="__j__">
+    @!contribute.optionRow({ prefix, index: '__j__', option: {}, correct: false })
+  </template>
+  <button type="button" class="link-button" data-add-row="options">+ Add option</button>
+  <label class="field">
+    <span>Explanation (shown after answering)</span>
+    <textarea
+      name="{{ prefix }}[explanation]"
+      class="input"
+      rows="2"
+    >{{ layer.explanation ?? '' }}</textarea>
+  </label>
+</div>

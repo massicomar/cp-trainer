@@ -3,20 +3,42 @@
   "schemaVersion": 1,
   "id": "fx-bfs",
   "status": "ready",
+  "author": "classmate",
+  "collection": "community",
   "title": "Fixture Message Route",
   "source": "CSES",
   "url": "https://cses.fi/problemset/task/1667",
-  "difficulty": { "tier": "hard", "scale": "estimate", "value": "H" },
+  "difficulty": {
+    "tier": "hard",
+    "scale": "estimate",
+    "value": "H"
+  },
   "summary": "Find a route between two computers that passes through as few others as possible.",
-  "constraints": { "text": "n ≤ 1e5, m ≤ 2e5", "verified": true },
+  "constraints": {
+    "text": "n ≤ 1e5, m ≤ 2e5",
+    "verified": true
+  },
   "answers": {
-    "subjects": [{ "id": "graphs", "role": "intended" }],
+    "subjects": [
+      {
+        "id": "graphs",
+        "role": "intended"
+      }
+    ],
     "techniques": [
-      { "id": "graphs.bfs", "role": "intended" },
-      { "id": "graphs.dijkstra", "role": "overkill" }
+      {
+        "id": "graphs.bfs",
+        "role": "intended"
+      },
+      {
+        "id": "graphs.dijkstra",
+        "role": "overkill"
+      }
     ]
   },
-  "distractors": ["dp.linear"],
+  "distractors": [
+    "dp.linear"
+  ],
   "explanation": "Unweighted edges: the first time you reach a node is along a shortest path.",
   "deprecated": false
 }

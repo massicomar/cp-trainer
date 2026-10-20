@@ -3,21 +3,45 @@
   "schemaVersion": 1,
   "id": "fx-longest-path",
   "status": "draft",
+  "author": "massicomar",
+  "collection": "official",
   "title": "Fixture Longest Path",
   "source": "AtCoder",
   "url": "https://atcoder.jp/contests/dp/tasks/dp_g",
-  "difficulty": { "tier": "medium", "scale": "estimate", "value": "M" },
+  "difficulty": {
+    "tier": "medium",
+    "scale": "estimate",
+    "value": "M"
+  },
   "summary": "",
-  "constraints": { "text": "n, m ≤ 1e5, the graph has no cycles", "verified": false },
+  "constraints": {
+    "text": "n, m ≤ 1e5, the graph has no cycles",
+    "verified": false
+  },
   "answers": {
     "subjects": [
-      { "id": "dp", "role": "intended" },
-      { "id": "graphs", "role": "accepted" },
-      { "id": "number-theory", "role": "accepted" }
+      {
+        "id": "dp",
+        "role": "intended"
+      },
+      {
+        "id": "graphs",
+        "role": "accepted"
+      },
+      {
+        "id": "number-theory",
+        "role": "accepted"
+      }
     ],
     "techniques": [
-      { "id": "dp.dag", "role": "intended" },
-      { "id": "graphs.toposort", "role": "accepted" }
+      {
+        "id": "dp.dag",
+        "role": "intended"
+      },
+      {
+        "id": "graphs.toposort",
+        "role": "accepted"
+      }
     ]
   },
   "explanation": "Process vertices in topological order and extend the best path into each.",
@@ -27,10 +51,19 @@
       "kind": "dp-state",
       "prompt": "What should the DP state represent?",
       "options": [
-        { "id": "a", "text": "dp[v] = longest path ending at v" },
-        { "id": "b", "text": "dp[v] = number of paths ending at v", "why": "Counts paths instead of measuring them." }
+        {
+          "id": "a",
+          "text": "dp[v] = longest path ending at v"
+        },
+        {
+          "id": "b",
+          "text": "dp[v] = number of paths ending at v",
+          "why": "Counts paths instead of measuring them."
+        }
       ],
-      "accepted": ["a"],
+      "accepted": [
+        "a"
+      ],
       "explanation": "Only the best length into v matters for extending it."
     }
   ],

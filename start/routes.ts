@@ -23,8 +23,14 @@ router
     router.post('/continue', [controllers.Lessons, 'continue']).as('lessons.continue')
     router.post('/next', [controllers.Lessons, 'next']).as('lessons.next')
     router.get('/summary', [controllers.Lessons, 'summary']).as('lessons.summary')
+    router.get('/report', [controllers.Lessons, 'report']).as('lessons.report')
   })
   .prefix('/lessons/:id')
   .where('id', router.matchers.number())
+
+router.get('/contribute', [controllers.Contribute, 'show']).as('contribute.show')
+router.post('/contribute', [controllers.Contribute, 'preview']).as('contribute.preview')
+
+router.post('/preferences', [controllers.Preferences, 'update']).as('preferences.update')
 
 router.get('/health', [controllers.Health, 'show']).as('health')

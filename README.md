@@ -32,15 +32,20 @@ Sessions only use `ready` problems. While the bank is still all drafts, set `CON
 
 ### Where things are
 
-| Path                                  | What                                                                         |
-| ------------------------------------- | ---------------------------------------------------------------------------- |
-| `app/services/session_selection.ts`   | subjects + tiers → matching problems, counts                                 |
-| `app/services/lesson_planner.ts`      | picks a lesson's problems (round-robin, unseen first, pairs, distractor cap) |
-| `app/services/question_builder.ts`    | which layers a problem asks, and each layer's options                        |
-| `app/services/answer_grader.ts`       | option → correct / overkill / wrong                                          |
-| `app/services/lesson_flow.ts`         | the lesson state machine: answer, give up, skip, continue, summary           |
-| `app/middleware/player_middleware.ts` | anonymous player from the signed `pid` cookie                                |
-| `resources/views/partials/play.edge`  | the lesson area that HTMX swaps after every action                           |
+| Path                                   | What                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------- |
+| `app/services/session_selection.ts`    | subjects + tiers → matching problems, counts                                       |
+| `app/services/lesson_planner.ts`       | picks a lesson's problems (round-robin, unseen first, pairs, distractor cap)       |
+| `app/services/question_builder.ts`     | which layers a problem asks, and each layer's options                              |
+| `app/services/answer_grader.ts`        | option → correct / overkill / wrong                                                |
+| `app/services/lesson_flow.ts`          | the lesson state machine: answer, give up, skip, continue, summary                 |
+| `app/middleware/player_middleware.ts`  | anonymous player from the signed `pid` cookie                                      |
+| `resources/views/partials/play.edge`   | the lesson area that HTMX swaps after every action                                 |
+| `app/services/problem_draft.ts`        | `/contribute`: form → problem file, with CI's checks                               |
+| `app/services/content_rules.ts`        | URL allowlist + leak lint, copied from the content repo's validator (keep in sync) |
+| `resources/lang/{en,es}/messages.json` | every UI string; problem content stays English                                     |
+
+The UI is translated (English / Spanish, header switch or browser language) and has a System / Light / Dark theme switch. Both are cookies, not player data.
 
 ## Run the production stack locally (Docker)
 

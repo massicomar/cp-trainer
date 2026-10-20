@@ -14,17 +14,22 @@ const ALL_TIERS = ['easy', 'medium', 'hard']
 /**
  * The setup form's field names, as a browser sends them.
  */
-function setupForm(subjects: string[], tiers: string[]) {
-  return { 'subjects[]': subjects, 'tiers[]': tiers }
+function setupForm(subjects: string[], tiers: string[], problems = 'all') {
+  return { 'subjects[]': subjects, 'tiers[]': tiers, problems }
 }
 
 /**
  * POSTs the setup form and returns the new player's cookie and lesson.
  */
-async function startLesson(client: ApiClient, subjects: string[], tiers = ALL_TIERS) {
+async function startLesson(
+  client: ApiClient,
+  subjects: string[],
+  tiers = ALL_TIERS,
+  problems = 'all'
+) {
   const response = await client
     .post('/lessons')
-    .form(setupForm(subjects, tiers))
+    .form(setupForm(subjects, tiers, problems))
     .withCsrfToken()
     .redirects(0)
   response.assertStatus(302)
@@ -33,10 +38,13 @@ async function startLesson(client: ApiClient, subjects: string[], tiers = ALL_TI
   return { pid: pid as string, lesson: await Lesson.findOrFail(lessonId) }
 }
 
+/**
+ * The question on screen, plus the step token its forms carry.
+ */
 async function currentQuestion(lesson: Lesson) {
   const flow = await app.container.make(LessonFlow)
   const state = await flow.state(lesson)
-  return state!.question
+  return { ...state!.question, step: state!.stepToken }
 }
 
 test.group('Session setup', (group) => {
@@ -79,11 +87,27 @@ test.group('Session setup', (group) => {
     assert.isString(pid)
     assert.deepEqual(lesson.problemIds, ['fx-bfs'])
     const player = await Player.findOrFail(pid)
-    assert.deepEqual(player.preferences, { subjects: ['graphs'], tiers: ['hard'] })
+    assert.deepEqual(player.preferences, {
+      subjects: ['graphs'],
+      tiers: ['hard'],
+      includeCommunity: true,
+    })
 
     const setup = await client.get('/').withCookie('pid', pid)
     assert.match(setup.text(), /value="graphs"\s+checked/)
     assert.notMatch(setup.text(), /value="dp"\s+checked/)
+  })
+
+  test('"Official only" leaves community problems out, and is remembered', async ({
+    client,
+    assert,
+  }) => {
+    const { pid, lesson } = await startLesson(client, ['dp', 'graphs'], ALL_TIERS, 'official')
+
+    assert.notInclude(lesson.problemIds, 'fx-bfs')
+    assert.isFalse(lesson.includeCommunity)
+    const setup = await client.get('/').withCookie('pid', pid)
+    assert.match(setup.text(), /value="official"\s+checked/)
   })
 
   test('rejects an empty selection', async ({ client, assert }) => {
@@ -138,7 +162,7 @@ test.group('Playing a lesson', (group) => {
       const right = question.options.find((o) => o.role === 'correct')!
 
       const answered = await htmx(client, pid, lesson, 'answer', {
-        layerId: question.layer.id,
+        step: question.step,
         option: right.id,
       })
       answered.assertStatus(200)
@@ -177,24 +201,29 @@ test.group('Playing a lesson', (group) => {
     page.assertTextIncludes('Find a route between two computers')
     assert.notInclude(page.text(), 'Fixture Message Route')
     assert.notInclude(page.text(), 'cses.fi')
+    // Not even in hidden fields: the id is enough to look the original up.
+    assert.notInclude(page.text(), 'fx-bfs')
 
     const question = await currentQuestion(lesson)
     const answered = await htmx(client, pid, lesson, 'answer', {
-      layerId: question.layer.id,
+      step: question.step,
       option: question.options.find((o) => o.role === 'wrong')!.id,
     })
     // Last (only) layer: the feedback reveals the problem.
     answered.assertTextIncludes('Not quite.')
     answered.assertTextIncludes('Fixture Message Route')
+    // fx-bfs was added by a classmate to the community collection.
+    answered.assertTextIncludes('@classmate')
+    answered.assertTextIncludes('Community')
   })
 
   test('give up reveals the answer and records it', async ({ client, assert }) => {
     const { pid, lesson } = await startLesson(client, ['dp', 'graphs'])
     const question = await currentQuestion(lesson)
 
-    const response = await htmx(client, pid, lesson, 'give-up', { layerId: question.layer.id })
+    const response = await htmx(client, pid, lesson, 'give-up', { step: question.step })
 
-    response.assertTextIncludes("Here's the answer:")
+    response.assertTextIncludes('Here’s the answer:')
     const attempt = await Attempt.findByOrFail('layer_id', question.layer.id)
     assert.equal(attempt.outcome, 'gave_up')
     assert.isNull(attempt.chosen)
@@ -219,7 +248,7 @@ test.group('Playing a lesson', (group) => {
     const { pid, lesson } = await startLesson(client, ['dp', 'graphs'])
     const question = await currentQuestion(lesson)
     await htmx(client, pid, lesson, 'answer', {
-      layerId: question.layer.id,
+      step: question.step,
       option: question.options[0].id,
     })
     await htmx(client, pid, lesson, 'continue')
@@ -239,7 +268,7 @@ test.group('Playing a lesson', (group) => {
     const { pid, lesson } = await startLesson(client, ['dp', 'graphs'])
 
     const response = await htmx(client, pid, lesson, 'answer', {
-      layerId: 'fx-coins:dp-transition',
+      step: '0.3',
       option: 'a',
     })
 
@@ -252,8 +281,8 @@ test.group('Playing a lesson', (group) => {
     const question = await currentQuestion(lesson)
     const [a, b] = question.options
 
-    await htmx(client, pid, lesson, 'answer', { layerId: question.layer.id, option: a.id })
-    await htmx(client, pid, lesson, 'answer', { layerId: question.layer.id, option: b.id })
+    await htmx(client, pid, lesson, 'answer', { step: question.step, option: a.id })
+    await htmx(client, pid, lesson, 'answer', { step: question.step, option: b.id })
 
     const attempts = await Attempt.query().where('lesson_id', lesson.id)
     assert.lengthOf(attempts, 1)
@@ -294,8 +323,49 @@ test.group('Playing a lesson', (group) => {
     response.assertStatus(302)
     const next = await Lesson.query().where('player_id', pid).orderBy('id', 'desc').firstOrFail()
     assert.notEqual(next.id, lesson.id)
-    assert.deepEqual(next.selection, { subjects: ['graphs'], tiers: ['hard'] })
+    assert.deepEqual(next.selection, {
+      subjects: ['graphs'],
+      tiers: ['hard'],
+      includeCommunity: true,
+    })
     response.assertHeader('location', `/lessons/${next.id}`)
+  })
+
+  test('"Report a problem" opens a pre-filled issue for the current question', async ({
+    client,
+    assert,
+  }) => {
+    const { pid, lesson } = await startLesson(client, ['dp', 'graphs'])
+    const first = lesson.problemIds[0]
+
+    const response = await client
+      .get(`/lessons/${lesson.id}/report`)
+      .qs({ step: '0.0' })
+      .withCookie('pid', pid)
+      .redirects(0)
+
+    response.assertStatus(302)
+    const location = new URL(response.header('location')!)
+    assert.equal(
+      location.origin + location.pathname,
+      'https://github.com/massicomar/cp-trainer-content/issues/new'
+    )
+    assert.equal(location.searchParams.get('template'), 'problem-report.yml')
+    assert.equal(location.searchParams.get('problem'), first)
+    assert.equal(location.searchParams.get('layer'), 'subject')
+  })
+
+  test("reports can't reveal problems the player hasn't reached", async ({ client }) => {
+    const { pid, lesson } = await startLesson(client, ['dp', 'graphs'])
+
+    const response = await client
+      .get(`/lessons/${lesson.id}/report`)
+      .qs({ problem: '2' })
+      .withCookie('pid', pid)
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', `/lessons/${lesson.id}`)
   })
 
   test('the summary scores layers and leaves skipped ones out', async ({ client, assert }) => {
@@ -311,6 +381,8 @@ test.group('Playing a lesson', (group) => {
       summary.scores.map((s) => [s.label, s.right, s.total]),
       [['Technique', 0, 0]]
     )
-    assert.deepEqual(summary.problems[0].results, [{ label: 'Technique', outcome: 'skipped' }])
+    assert.deepEqual(summary.problems[0].results, [
+      { kind: 'technique', label: 'Technique', outcome: 'skipped' },
+    ])
   })
 })

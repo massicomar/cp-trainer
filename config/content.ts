@@ -15,6 +15,12 @@ const contentConfig = {
    * writing. Off in production: drafts may have no summary yet.
    */
   includeDrafts: env.get('CONTENT_INCLUDE_DRAFTS', false),
+
+  /**
+   * The content repo on GitHub: "Report a problem" opens issues there, and
+   * the contribute page links to it.
+   */
+  repoUrl: env.get('CONTENT_REPO_URL', 'https://github.com/massicomar/cp-trainer-content'),
 }
 
 export default contentConfig

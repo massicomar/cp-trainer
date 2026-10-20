@@ -7,6 +7,7 @@ import type Problem from '#models/problem'
 import AnswerGrader from '#services/answer_grader'
 import Catalog, { type ProblemBundle, type Taxonomy } from '#services/catalog'
 import LessonPlanner from '#services/lesson_planner'
+import type { ReportTarget } from '#services/problem_reports'
 import QuestionBuilder, { type Question } from '#services/question_builder'
 import type { Outcome, Selection } from '#types/play'
 
@@ -21,6 +22,12 @@ export interface PlayState {
   problemCount: number
   stepNumber: number
   stepCount: number
+  /**
+   * Identifies the current layer in forms ("<problem index>.<step index>").
+   * Opaque on purpose: layer ids contain the problem id, which would let a
+   * player look the original up from the page source.
+   */
+  stepToken: string
   question: Question
   /** Set once the current layer is answered: the page shows feedback. */
   attempt: Attempt | null
@@ -64,7 +71,7 @@ export interface LessonSummary {
   scores: LayerScore[]
   problems: {
     problem: Problem
-    results: { label: string; outcome: Outcome }[]
+    results: { kind: string; label: string; outcome: Outcome }[]
   }[]
 }
 
@@ -117,6 +124,7 @@ export default class LessonFlow {
       playerId: player.id,
       subjectIds: selection.subjects,
       tiers: selection.tiers,
+      includeCommunity: selection.includeCommunity,
       problemIds,
       cursorProblem: 0,
       cursorLayer: 0,
@@ -143,6 +151,7 @@ export default class LessonFlow {
       problemCount: lesson.problemIds.length,
       stepNumber: stepIndex + 1,
       stepCount: steps.length,
+      stepToken: stepToken(position),
       question,
       attempt,
       feedback: attempt ? feedbackFor(question, attempt) : null,
@@ -155,16 +164,16 @@ export default class LessonFlow {
     }
   }
 
-  async answer(lesson: Lesson, layerId: string, chosen: string) {
-    const position = await this.openPosition(lesson, layerId)
+  async answer(lesson: Lesson, step: string, chosen: string) {
+    const position = await this.openPosition(lesson, step)
     if (!position) return
     const outcome = this.grader.grade(this.question(position), chosen)
     if (!outcome) return
     await this.record(position, outcome, chosen)
   }
 
-  async giveUp(lesson: Lesson, layerId: string) {
-    const position = await this.openPosition(lesson, layerId)
+  async giveUp(lesson: Lesson, step: string) {
+    const position = await this.openPosition(lesson, step)
     if (!position) return
     await this.record(position, 'gave_up', null)
   }
@@ -225,9 +234,42 @@ export default class LessonFlow {
           results: attempts
             .filter((a) => a.problemId === bundle.problem.id)
             .sort((a, b) => a.layer.position - b.layer.position)
-            .map((a) => ({ label: labelFor(a.layer.kind), outcome: a.outcome })),
+            .map((a) => ({
+              kind: a.layer.kind,
+              label: labelFor(a.layer.kind),
+              outcome: a.outcome,
+            })),
         })),
     }
+  }
+
+  /**
+   * What a "Report a problem" link points at: `step` ("<problem>.<step>",
+   * from the lesson page) or `problem` ("<problem>", from the summary). Only
+   * problems the player has reached, so the redirect can't be used to peek at
+   * the ids of problems still to come.
+   */
+  async reportTarget(
+    lesson: Lesson,
+    input: { step?: unknown; problem?: unknown }
+  ): Promise<ReportTarget | null> {
+    const [problemIndex, stepIndex] =
+      typeof input.step === 'string'
+        ? input.step.split('.').map(Number)
+        : [Number(input.problem), Number.NaN]
+    if (!Number.isInteger(problemIndex) || problemIndex < 0) return null
+    if (problemIndex >= lesson.problemIds.length) return null
+    if (!lesson.isDone && problemIndex > lesson.cursorProblem) return null
+
+    const problemId = lesson.problemIds[problemIndex]
+    if (!Number.isInteger(stepIndex)) return { problemId, layer: null }
+
+    const [taxonomy, bundle] = await Promise.all([
+      this.catalog.taxonomy(),
+      this.catalog.bundle(problemId),
+    ])
+    const layer = this.builder.steps(bundle, lesson.subjectIds, taxonomy)[stepIndex]
+    return { problemId, layer: layer ? layer.id.slice(problemId.length + 1) : null }
   }
 
   protected question({ lesson, bundle, taxonomy, step, attempts }: Position): Question {
@@ -261,13 +303,13 @@ export default class LessonFlow {
   }
 
   /**
-   * The current position, only if `layerId` is the current layer and it
+   * The current position, only if `token` names the current layer and it
    * hasn't been answered yet.
    */
-  protected async openPosition(lesson: Lesson, layerId: string) {
+  protected async openPosition(lesson: Lesson, token: string) {
     const position = await this.position(lesson)
-    if (!position || position.step.id !== layerId) return null
-    if (position.attempts.some((a) => a.layerId === layerId)) return null
+    if (!position || stepToken(position) !== token) return null
+    if (position.attempts.some((a) => a.layerId === position.step.id)) return null
     return position
   }
 
@@ -307,6 +349,10 @@ export default class LessonFlow {
     }
     await lesson.save()
   }
+}
+
+function stepToken({ lesson, steps, step }: Position) {
+  return `${lesson.cursorProblem}.${steps.indexOf(step)}`
 }
 
 function feedbackFor(question: Question, attempt: Attempt): Feedback {

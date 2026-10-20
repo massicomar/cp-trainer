@@ -54,7 +54,7 @@ export class LayerSchema extends BaseModel {
 }
 
 export class LessonSchema extends BaseModel {
-  static $columns = ['createdAt', 'cursorLayer', 'cursorProblem', 'finishedAt', 'id', 'layerStartedAt', 'playerId', 'problemIds', 'status', 'subjectIds', 'tiers'] as const
+  static $columns = ['createdAt', 'cursorLayer', 'cursorProblem', 'finishedAt', 'id', 'includeCommunity', 'layerStartedAt', 'playerId', 'problemIds', 'status', 'subjectIds', 'tiers'] as const
   $columns = LessonSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -66,6 +66,8 @@ export class LessonSchema extends BaseModel {
   declare finishedAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare includeCommunity: boolean
   @column.dateTime()
   declare layerStartedAt: DateTime
   @column()
@@ -120,8 +122,12 @@ export class ProblemSubjectSchema extends BaseModel {
 }
 
 export class ProblemSchema extends BaseModel {
-  static $columns = ['constraintsText', 'constraintsVerified', 'contentHash', 'deprecated', 'difficultyScale', 'difficultyValue', 'distractors', 'explanationMd', 'id', 'pairWith', 'source', 'sourcePath', 'status', 'summaryMd', 'syncedAt', 'tier', 'title', 'traps', 'url'] as const
+  static $columns = ['author', 'collection', 'constraintsText', 'constraintsVerified', 'contentHash', 'deprecated', 'difficultyScale', 'difficultyValue', 'distractors', 'explanationMd', 'id', 'pairWith', 'source', 'sourcePath', 'status', 'summaryMd', 'syncedAt', 'tier', 'title', 'traps', 'url'] as const
   $columns = ProblemSchema.$columns
+  @column()
+  declare author: string
+  @column()
+  declare collection: string
   @column()
   declare constraintsText: string
   @column()

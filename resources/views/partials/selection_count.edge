@@ -1,17 +1,16 @@
 {{-- Swapped by HTMX on every chip toggle; also rendered inside the setup form. --}}
 <div id="selection-count" class="start">
   @if(!complete)
-    <p class="muted">Pick at least one subject and one difficulty.</p>
+    <p class="muted">{{ t('messages.setup.count.incomplete') }}</p>
   @elseif(count === 0)
-    <p class="muted">No problems match this selection yet.</p>
+    <p class="muted">{{ t('messages.setup.count.none') }}</p>
   @elseif(count < lessonSize)
-    @let(matches = count === 1 ? '1 problem matches' : `${count} problems match`)
-    <p>{{ matches }} · the lesson will be shorter than {{ lessonSize }}</p>
+    <p>{{ t('messages.setup.count.short', { count, size: lessonSize }) }}</p>
   @else
-    <p>{{ count }} problems match · {{ lessonSize }} per lesson</p>
+    <p>{{ t('messages.setup.count.full', { count, size: lessonSize }) }}</p>
   @end
 
   <button type="submit" class="button button--primary" {{ count === 0 ? 'disabled' : '' }}>
-    Start lesson
+    {{ t('messages.setup.start') }}
   </button>
 </div>

@@ -15,6 +15,15 @@ export type LoadResult =
   { ok: true; content: LoadedContent } | { ok: false; errors: ContentIssue[] }
 
 /**
+ * What a single draft is checked against: the synced taxonomy and problems.
+ */
+export interface DraftWorld {
+  subjectIds: Set<string>
+  techniqueSubject: Map<string, string>
+  problemIds: Set<string>
+}
+
+/**
  * Layers 1 and 2 get these keys, so an extraLayer can't use them.
  */
 export const GENERATED_LAYER_KEYS = ['subject', 'technique'] as const
@@ -137,6 +146,37 @@ export default class ContentLoader {
 
     if (errors.length) return { ok: false, errors }
     return { ok: true, content: { taxonomy, problems: [...problems.values()] } }
+  }
+
+  /**
+   * Checks a single problem that isn't on disk (the contribute page), with
+   * the same schema and cross-reference rules `load` applies, against the
+   * synced taxonomy and problem ids.
+   */
+  async checkDraft(root: string, problem: unknown, world: DraftWorld): Promise<string[]> {
+    const messages: string[] = []
+    const err = (_file: string, message: string) => messages.push(message)
+
+    let validateProblem: ValidateFunction
+    try {
+      const ajv = new Ajv2020({ allErrors: true, strict: true })
+      addFormats.default(ajv)
+      validateProblem = ajv.compile(await readJson(join(root, 'schema/problem.schema.json')))
+    } catch (error) {
+      return [`cannot load the JSON Schema: ${messageOf(error)}`]
+    }
+    if (!validateProblem(problem)) {
+      return (validateProblem.errors ?? []).map(schemaMessage)
+    }
+
+    const file = problem as ProblemFile
+    this.checkAnswers(file, '', world.subjectIds, world.techniqueSubject, err)
+    this.checkExtraLayers(file, '', err)
+    for (const id of file.pairWith ?? []) {
+      if (id === file.id) err('', 'pairWith references itself')
+      else if (!world.problemIds.has(id)) err('', `pairWith: unknown problem ${id}`)
+    }
+    return messages
   }
 
   protected checkAnswers(

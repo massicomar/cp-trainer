@@ -3,17 +3,10 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { findOrCreatePlayer } from '#middleware/player_middleware'
 import Lesson from '#models/lesson'
 import LessonFlow from '#services/lesson_flow'
+import { problemReportUrl } from '#services/problem_reports'
 import SessionSelection from '#services/session_selection'
 import type { Selection } from '#types/play'
 import { createLessonValidator } from '#validators/create_lesson'
-
-const OUTCOME_LABELS = {
-  correct: 'right',
-  overkill: 'right (overkill)',
-  wrong: 'wrong',
-  gave_up: 'gave up',
-  skipped: 'skipped',
-}
 
 /**
  * The lesson pages. Every POST works with and without HTMX: HTMX requests get
@@ -28,7 +21,7 @@ export default class LessonsController {
   ) {}
 
   async store(ctx: HttpContext) {
-    const { request, response, session } = ctx
+    const { request, response, session, i18n } = ctx
     const data = await request.validateUsing(createLessonValidator)
     const subjects = await this.selection.visibleSubjects()
     const selection = this.selection.normalize(
@@ -36,14 +29,14 @@ export default class LessonsController {
       subjects.map((s) => s.id)
     )
     if (!this.selection.isComplete(selection)) {
-      session.flash('error', 'Pick at least one subject and one difficulty.')
+      session.flash('error', i18n.t('messages.setup.errors.incomplete'))
       return response.redirect('/')
     }
 
     const player = await findOrCreatePlayer(ctx)
     const lesson = await this.flow.create(player, selection)
     if (!lesson) {
-      session.flash('error', 'No problems match that selection yet.')
+      session.flash('error', i18n.t('messages.setup.errors.noMatch'))
       return response.redirect(setupUrl(selection))
     }
     return response.redirect(`/lessons/${lesson.id}`)
@@ -58,13 +51,13 @@ export default class LessonsController {
 
   async answer(ctx: HttpContext) {
     const lesson = await this.find(ctx)
-    await this.flow.answer(lesson, inputString(ctx, 'layerId'), inputString(ctx, 'option'))
+    await this.flow.answer(lesson, inputString(ctx, 'step'), inputString(ctx, 'option'))
     return this.respond(ctx, lesson)
   }
 
   async giveUp(ctx: HttpContext) {
     const lesson = await this.find(ctx)
-    await this.flow.giveUp(lesson, inputString(ctx, 'layerId'))
+    await this.flow.giveUp(lesson, inputString(ctx, 'step'))
     return this.respond(ctx, lesson)
   }
 
@@ -87,7 +80,7 @@ export default class LessonsController {
     const lesson = await this.find(ctx)
     const next = await this.flow.create(ctx.player!, lesson.selection)
     if (!next) {
-      ctx.session.flash('error', 'No problems match that selection anymore.')
+      ctx.session.flash('error', ctx.i18n.t('messages.setup.errors.noMatchAnymore'))
       return ctx.response.redirect(setupUrl(lesson.selection))
     }
     return ctx.response.redirect(`/lessons/${next.id}`)
@@ -99,8 +92,18 @@ export default class LessonsController {
     return ctx.view.render('pages/lesson_summary', {
       summary: await this.flow.summary(lesson),
       changeUrl: setupUrl(lesson.selection),
-      outcomeLabels: OUTCOME_LABELS,
     })
+  }
+
+  /**
+   * "Report a problem": resolves the step (or summary entry) to a problem and
+   * layer, then sends the player to a pre-filled GitHub issue.
+   */
+  async report(ctx: HttpContext) {
+    const lesson = await this.find(ctx)
+    const target = await this.flow.reportTarget(lesson, ctx.request.qs())
+    if (!target) return ctx.response.redirect(`/lessons/${lesson.id}`)
+    return ctx.response.redirect(problemReportUrl(target))
   }
 
   /**
@@ -137,5 +140,6 @@ function setupUrl(selection: Selection) {
   const query = new URLSearchParams()
   for (const subject of selection.subjects) query.append('subjects[]', subject)
   for (const tier of selection.tiers) query.append('tiers[]', tier)
+  if (!selection.includeCommunity) query.append('problems', 'official')
   return `/?${query}`
 }

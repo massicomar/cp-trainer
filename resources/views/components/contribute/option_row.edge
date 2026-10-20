@@ -1,0 +1,26 @@
+{{-- One option of an extra layer. Ids (a, b, c…) come from the order of the rows. --}}
+@let(name = `${$props.get('prefix')}[options][${$props.get('index')}]`)
+@let(option = $props.get('option') ?? {})
+<div class="row row--option" data-row>
+  <label class="check">
+    <input
+      type="checkbox"
+      name="{{ name }}[correct]"
+      {{ $props.get('correct') ? 'checked' : '' }}
+    />
+    <span>correct</span>
+  </label>
+  <input
+    name="{{ name }}[text]"
+    value="{{ option.text ?? '' }}"
+    class="input"
+    placeholder="Option text"
+  />
+  <input
+    name="{{ name }}[why]"
+    value="{{ option.why ?? '' }}"
+    class="input"
+    placeholder="Why it's wrong (shown when picked)"
+  />
+  <button type="button" class="row__remove" data-remove-row aria-label="Remove option">×</button>
+</div>

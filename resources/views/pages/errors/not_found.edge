@@ -1,4 +1,7 @@
-@layouts.main({ title: 'Not found' })
-  <h1>Page not found</h1>
-  <p>There's nothing at this address. <a href="{{ route('home') }}">Back to the start</a>.</p>
+@layouts.main({ title: t('messages.errors.notFound.title') })
+  <h1>{{ t('messages.errors.notFound.heading') }}</h1>
+  <p>
+    {{ t('messages.errors.notFound.body') }}
+    <a href="/">{{ t('messages.errors.notFound.back') }}</a>
+  </p>
 @end

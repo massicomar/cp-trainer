@@ -48,11 +48,11 @@ export const http = defineConfig({
    */
   redirect: {
     /**
-     * When enabled, all redirects automatically carry over the current
-     * request's query string parameters to the redirect destination.
-     * Use withQs(false) to opt out for a specific redirect.
+     * Off: redirects go exactly where the code says. Forwarding the query
+     * string corrupted the GitHub "Report a problem" URL (and leaked
+     * `?step=` into the lesson redirect). Use withQs() where it's wanted.
      */
-    forwardQueryString: true,
+    forwardQueryString: false,
   },
 
   /**

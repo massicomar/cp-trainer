@@ -128,6 +128,8 @@ export default class ContentSync {
     const rows = content.problems.map(({ problem, file, hash }) => ({
       id: problem.id,
       status: problem.status,
+      author: problem.author,
+      collection: problem.collection,
       title: problem.title,
       source: problem.source,
       url: problem.url,

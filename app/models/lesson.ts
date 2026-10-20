@@ -1,5 +1,5 @@
 import { LessonSchema } from '#database/schema'
-import { jsonColumn } from '#database/column_types'
+import { booleanColumn, jsonColumn } from '#database/column_types'
 import Attempt from '#models/attempt'
 import Player from '#models/player'
 import type { Tier } from '#types/content'
@@ -24,6 +24,9 @@ export default class Lesson extends LessonSchema {
   @column(jsonColumn)
   declare problemIds: string[]
 
+  @column(booleanColumn)
+  declare includeCommunity: boolean
+
   @belongsTo(() => Player)
   declare player: BelongsTo<typeof Player>
 
@@ -31,7 +34,11 @@ export default class Lesson extends LessonSchema {
   declare attempts: HasMany<typeof Attempt>
 
   get selection(): Selection {
-    return { subjects: this.subjectIds, tiers: this.tiers }
+    return {
+      subjects: this.subjectIds,
+      tiers: this.tiers,
+      includeCommunity: this.includeCommunity,
+    }
   }
 
   get isDone() {

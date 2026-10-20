@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "contribute": "Contribuir"
+  },
+  "theme": {
+    "label": "Tema",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "language": {
+    "label": "Idioma"
+  },
+  "setup": {
+    "pageTitle": "Practicar",
+    "heading": "¿Qué quieres practicar?",
+    "intro": "Lee un problema y luego indica la categoría, la técnica y, en DP, el estado y la transición. Cada lección tiene {size} problemas.",
+    "subjects": "Categorías",
+    "difficulty": "Dificultad",
+    "problems": "Problemas",
+    "presets": {
+      "all": "Todas las categorías",
+      "dp": "Solo DP",
+      "last": "Igual que la última vez"
+    },
+    "collections": {
+      "all": "Oficiales + comunidad",
+      "official": "Solo oficiales"
+    },
+    "errors": {
+      "subjects": "Elige al menos una categoría.",
+      "tiers": "Elige al menos una dificultad.",
+      "incomplete": "Elige al menos una categoría y una dificultad.",
+      "noMatch": "Todavía no hay problemas para esa selección.",
+      "noMatchAnymore": "Ya no hay problemas para esa selección."
+    },
+    "count": {
+      "incomplete": "Elige al menos una categoría y una dificultad.",
+      "none": "Todavía no hay problemas para esta selección.",
+      "short": "{count, plural, one {# problema coincide} other {# problemas coinciden}} · la lección tendrá menos de {size}",
+      "full": "{count} problemas coinciden · {size} por lección"
+    },
+    "start": "Empezar lección"
+  },
+  "tiers": {
+    "easy": "Fácil",
+    "medium": "Media",
+    "hard": "Difícil"
+  },
+  "play": {
+    "pageTitle": "Lección",
+    "problemOf": "Problema {number} de {count}",
+    "draft": "Borrador",
+    "noSummary": "Todavía no tiene resumen.",
+    "constraints": "Restricciones",
+    "questionOf": "Pregunta {number} de {count}",
+    "prompts": {
+      "subject": "¿A qué categoría pertenece este problema?",
+      "technique": "¿Qué técnica lo resuelve?"
+    },
+    "giveUp": "Me rindo",
+    "skip": "Saltar problema",
+    "yourAnswer": "tu respuesta",
+    "verdict": {
+      "correct": "¡Correcto!",
+      "overkill": "Funciona, pero hay una forma más simple:",
+      "wrong": "No exactamente. La respuesta es:",
+      "gaveUp": "Esta es la respuesta:"
+    },
+    "thisWas": "Era",
+    "traps": "Trampas",
+    "continue": "Continuar",
+    "nextProblem": "Siguiente problema",
+    "seeResults": "Ver resultados",
+    "report": "Reportar un problema"
+  },
+  "summary": {
+    "pageTitle": "Resultados de la lección",
+    "heading": "Resultados de la lección",
+    "keyObservation": "Observación clave:",
+    "next": "Siguiente lección",
+    "change": "Cambiar selección"
+  },
+  "kinds": {
+    "subject": "Categoría",
+    "technique": "Técnica",
+    "dp-state": "Estado de DP",
+    "dp-transition": "Transición de DP",
+    "complexity": "Complejidad",
+    "observation": "Observación",
+    "node-stores": "Contenido del nodo",
+    "trap": "Trampa"
+  },
+  "outcomes": {
+    "correct": "bien",
+    "overkill": "bien (excesivo)",
+    "wrong": "mal",
+    "gave_up": "rendido",
+    "skipped": "saltado"
+  },
+  "credit": {
+    "addedBy": "Agregado por",
+    "community": "Comunidad"
+  },
+  "errors": {
+    "notFound": {
+      "title": "No encontrado",
+      "heading": "Página no encontrada",
+      "body": "No hay nada en esta dirección.",
+      "back": "Volver al inicio"
+    },
+    "server": {
+      "title": "Algo salió mal",
+      "heading": "Algo salió mal",
+      "body": "El servidor tuvo un error. Vuelve a intentarlo o regresa al inicio.",
+      "back": "Volver al inicio"
+    }
+  }
+}

@@ -25,13 +25,20 @@ export default class SessionSelection {
    * Keeps known visible subjects and valid tiers, in canonical order, dropping
    * anything else. Accepts a single string or an array for each field, as
    * query strings and forms produce either.
+   *
+   * Community problems are included unless the form says `problems=official`
+   * or a stored selection says `includeCommunity: false`.
    */
-  normalize(input: { subjects?: unknown; tiers?: unknown }, visibleIds: string[]): Selection {
+  normalize(
+    input: { subjects?: unknown; tiers?: unknown; problems?: unknown; includeCommunity?: unknown },
+    visibleIds: string[]
+  ): Selection {
     const subjects = new Set(asStrings(input.subjects))
     const tiers = new Set(asStrings(input.tiers))
     return {
       subjects: visibleIds.filter((id) => subjects.has(id)),
       tiers: TIERS.filter((tier) => tiers.has(tier)),
+      includeCommunity: input.problems !== 'official' && input.includeCommunity !== false,
     }
   }
 
@@ -67,13 +74,15 @@ export default class SessionSelection {
    * Base query over problems joined with their session subjects.
    */
   matching(selection: Selection) {
-    return db
+    const query = db
       .from('problems')
       .join('problem_subjects', 'problem_subjects.problem_id', 'problems.id')
       .where('problems.deprecated', false)
       .whereIn('problems.status', playableStatuses())
       .whereIn('problems.tier', selection.tiers)
       .whereIn('problem_subjects.subject_id', selection.subjects)
+    if (!selection.includeCommunity) query.where('problems.collection', 'official')
+    return query
   }
 }
 

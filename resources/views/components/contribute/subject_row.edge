@@ -1,0 +1,19 @@
+{{-- One answers.subjects row: subject + role. --}}
+@let(i = $props.get('index'))
+@let(answer = $props.get('answer'))
+<div class="row" data-row>
+  <select name="subjects[{{ i }}][id]" class="input" aria-label="Subject">
+    <option value="">Choose a subject…</option>
+    @each(subject in $props.get('subjects'))
+      <option value="{{ subject.id }}" {{ subject.id === answer.id ? 'selected' : '' }}>
+        {{ subject.name }}
+      </option>
+    @end
+  </select>
+  <select name="subjects[{{ i }}][role]" class="input input--narrow" aria-label="Role">
+    @each(role in $props.get('roles'))
+      <option value="{{ role }}" {{ role === answer.role ? 'selected' : '' }}>{{ role }}</option>
+    @end
+  </select>
+  <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+</div>

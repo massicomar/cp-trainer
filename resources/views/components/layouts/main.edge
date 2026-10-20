@@ -1,10 +1,12 @@
 {{--
   Page shell for every screen. HTMX requests carry the CSRF token through
-  hx-headers so Shield accepts them.
+  hx-headers so Shield accepts them. `theme` and `i18n` are shared by
+  middleware; error pages rendered outside the router fall back to defaults.
 --}}
 @let(pageTitle = $props.get('title'))
+@let(currentTheme = theme || 'system')
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ i18n.locale }}" data-theme="{{ currentTheme }}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,7 +14,38 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
   <body hx-headers='{"x-csrf-token": "{{ csrfToken }}"}'>
-    <header class="site-header"><a href="{{ route('home') }}" class="brand">CP Trainer</a></header>
+    <header class="site-header">
+      <a href="/" class="brand">CP Trainer</a>
+      <nav class="site-nav"><a href="/contribute">{{ t('messages.nav.contribute') }}</a></nav>
+      <form class="switches" method="post" action="/preferences">
+        {{ csrfField() }}
+        <div class="switch" role="group" aria-label="{{ t('messages.theme.label') }}">
+          @each(option in ['system', 'light', 'dark'])
+            <button
+              type="submit"
+              name="theme"
+              value="{{ option }}"
+              aria-pressed="{{ currentTheme === option }}"
+            >
+              {{ t(`messages.theme.${option}`) }}
+            </button>
+          @end
+        </div>
+        <div class="switch" role="group" aria-label="{{ t('messages.language.label') }}">
+          @each(option in ['en', 'es'])
+            <button
+              type="submit"
+              name="locale"
+              value="{{ option }}"
+              aria-pressed="{{ i18n.locale === option }}"
+              lang="{{ option }}"
+            >
+              {{ option.toUpperCase() }}
+            </button>
+          @end
+        </div>
+      </form>
+    </header>
     <main class="container">{{{ await $slots.main() }}}</main>
   </body>
 </html>

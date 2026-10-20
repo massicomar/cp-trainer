@@ -3,19 +3,44 @@
   "schemaVersion": 1,
   "id": "fx-lottery",
   "status": "ready",
+  "author": "massicomar",
+  "collection": "official",
   "title": "Fixture Lottery",
   "source": "Codeforces",
   "url": "https://codeforces.com/problemset/problem/996/A",
-  "difficulty": { "tier": "easy", "scale": "cf", "value": "800" },
-  "summary": "Pay an amount with the fewest bills from a fixed set of denominations.",
-  "constraints": { "text": "n ≤ 1e9, bills 1, 5, 10, 20, 100", "verified": true },
-  "answers": {
-    "subjects": [{ "id": "other", "role": "intended" }],
-    "techniques": [{ "id": "other.greedy", "role": "intended" }]
+  "difficulty": {
+    "tier": "easy",
+    "scale": "cf",
+    "value": "800"
   },
-  "appearsIn": ["dp"],
-  "distractors": ["dp.coin-change"],
+  "summary": "Pay an amount with the fewest bills from a fixed set of denominations.",
+  "constraints": {
+    "text": "n ≤ 1e9, bills 1, 5, 10, 20, 100",
+    "verified": true
+  },
+  "answers": {
+    "subjects": [
+      {
+        "id": "other",
+        "role": "intended"
+      }
+    ],
+    "techniques": [
+      {
+        "id": "other.greedy",
+        "role": "intended"
+      }
+    ]
+  },
+  "appearsIn": [
+    "dp"
+  ],
+  "distractors": [
+    "dp.coin-change"
+  ],
   "explanation": "The bill set is canonical, so largest-first is optimal.",
-  "pairWith": ["fx-coins"],
+  "pairWith": [
+    "fx-coins"
+  ],
   "deprecated": false
 }

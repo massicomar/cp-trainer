@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "contribute": "Contribute"
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "setup": {
+    "pageTitle": "Practice",
+    "heading": "What do you want to practice?",
+    "intro": "Read a problem, then name the subject, the technique and, for DP, the state and transition. Each lesson is {size} problems.",
+    "subjects": "Subjects",
+    "difficulty": "Difficulty",
+    "problems": "Problems",
+    "presets": {
+      "all": "All subjects",
+      "dp": "Only DP",
+      "last": "Same as last time"
+    },
+    "collections": {
+      "all": "Official + community",
+      "official": "Official only"
+    },
+    "errors": {
+      "subjects": "Pick at least one subject.",
+      "tiers": "Pick at least one difficulty.",
+      "incomplete": "Pick at least one subject and one difficulty.",
+      "noMatch": "No problems match that selection yet.",
+      "noMatchAnymore": "No problems match that selection anymore."
+    },
+    "count": {
+      "incomplete": "Pick at least one subject and one difficulty.",
+      "none": "No problems match this selection yet.",
+      "short": "{count, plural, one {# problem matches} other {# problems match}} · the lesson will be shorter than {size}",
+      "full": "{count} problems match · {size} per lesson"
+    },
+    "start": "Start lesson"
+  },
+  "tiers": {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
+  },
+  "play": {
+    "pageTitle": "Lesson",
+    "problemOf": "Problem {number} of {count}",
+    "draft": "Draft",
+    "noSummary": "No summary written yet.",
+    "constraints": "Constraints",
+    "questionOf": "Question {number} of {count}",
+    "prompts": {
+      "subject": "Which subject does this problem belong to?",
+      "technique": "Which technique solves it?"
+    },
+    "giveUp": "Give up",
+    "skip": "Skip problem",
+    "yourAnswer": "your answer",
+    "verdict": {
+      "correct": "Correct.",
+      "overkill": "That works, but there’s a simpler way:",
+      "wrong": "Not quite. The answer is:",
+      "gaveUp": "Here’s the answer:"
+    },
+    "thisWas": "This was",
+    "traps": "Traps",
+    "continue": "Continue",
+    "nextProblem": "Next problem",
+    "seeResults": "See results",
+    "report": "Report a problem"
+  },
+  "summary": {
+    "pageTitle": "Lesson results",
+    "heading": "Lesson results",
+    "keyObservation": "Key observation:",
+    "next": "Next lesson",
+    "change": "Change selection"
+  },
+  "kinds": {
+    "subject": "Subject",
+    "technique": "Technique",
+    "dp-state": "DP state",
+    "dp-transition": "DP transition",
+    "complexity": "Complexity",
+    "observation": "Observation",
+    "node-stores": "Node contents",
+    "trap": "Trap"
+  },
+  "outcomes": {
+    "correct": "right",
+    "overkill": "right (overkill)",
+    "wrong": "wrong",
+    "gave_up": "gave up",
+    "skipped": "skipped"
+  },
+  "credit": {
+    "addedBy": "Added by",
+    "community": "Community"
+  },
+  "errors": {
+    "notFound": {
+      "title": "Not found",
+      "heading": "Page not found",
+      "body": "There’s nothing at this address.",
+      "back": "Back to the start"
+    },
+    "server": {
+      "title": "Something went wrong",
+      "heading": "Something went wrong",
+      "body": "The server hit an error. Try again, or go back to the start.",
+      "back": "Back to the start"
+    }
+  }
+}

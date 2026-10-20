@@ -1,7 +1,7 @@
-@layouts.main({ title: 'Something went wrong' })
-  <h1>Something went wrong</h1>
+@layouts.main({ title: t('messages.errors.server.title') })
+  <h1>{{ t('messages.errors.server.heading') }}</h1>
   <p>
-    The server hit an error. Try again, or
-    <a href="{{ route('home') }}">go back to the start</a>.
+    {{ t('messages.errors.server.body') }}
+    <a href="/">{{ t('messages.errors.server.back') }}</a>
   </p>
 @end

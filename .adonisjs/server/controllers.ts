@@ -4,7 +4,9 @@
  */
 
 export const controllers = {
+  Contribute: () => import('#controllers/contribute_controller'),
   Health: () => import('#controllers/health_controller'),
   Home: () => import('#controllers/home_controller'),
   Lessons: () => import('#controllers/lessons_controller'),
+  Preferences: () => import('#controllers/preferences_controller'),
 }

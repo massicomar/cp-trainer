@@ -1,9 +1,6 @@
-@layouts.main({ title: 'Practice' })
-  <h1>What do you want to practice?</h1>
-  <p class="muted">
-    Read a problem, then name the subject, the technique and, for DP, the state and transition.
-    Each lesson is {{ lessonSize }} problems.
-  </p>
+@layouts.main({ title: t('messages.setup.pageTitle') })
+  <h1>{{ t('messages.setup.heading') }}</h1>
+  <p class="muted">{{ t('messages.setup.intro', { size: lessonSize }) }}</p>
 
   @flashMessage('error')
     <p class="notice notice--error" role="alert">{{ $message }}</p>
@@ -26,14 +23,14 @@
     {{ csrfField() }}
 
     <fieldset class="setup__group">
-      <legend>Subjects</legend>
+      <legend>{{ t('messages.setup.subjects') }}</legend>
       <div class="presets">
         <button type="button" class="link-button" data-preset-subjects="{{ presets.all }}">
-          All subjects
+          {{ t('messages.setup.presets.all') }}
         </button>
         @if(presets.dp)
           <button type="button" class="link-button" data-preset-subjects="{{ presets.dp }}">
-            Only DP
+            {{ t('messages.setup.presets.dp') }}
           </button>
         @end
         @if(presets.last)
@@ -42,8 +39,9 @@
             class="link-button"
             data-preset-subjects="{{ presets.last.subjects.join(',') }}"
             data-preset-tiers="{{ presets.last.tiers.join(',') }}"
+            data-preset-problems="{{ presets.last.includeCommunity ? 'all' : 'official' }}"
           >
-            Same as last time
+            {{ t('messages.setup.presets.last') }}
           </button>
         @end
       </div>
@@ -61,12 +59,12 @@
         @end
       </div>
       @inputError('subjects')
-        <p class="field-error">Pick at least one subject.</p>
+        <p class="field-error">{{ t('messages.setup.errors.subjects') }}</p>
       @end
     </fieldset>
 
     <fieldset class="setup__group">
-      <legend>Difficulty</legend>
+      <legend>{{ t('messages.setup.difficulty') }}</legend>
       <div class="chips">
         @each(tier in tiers)
           <label class="chip">
@@ -76,13 +74,30 @@
               value="{{ tier }}"
               {{ current.tiers.includes(tier) ? 'checked' : '' }}
             />
-            <span class="capitalize">{{ tier }}</span>
+            <span>{{ t(`messages.tiers.${tier}`) }}</span>
           </label>
         @end
       </div>
       @inputError('tiers')
-        <p class="field-error">Pick at least one difficulty.</p>
+        <p class="field-error">{{ t('messages.setup.errors.tiers') }}</p>
       @end
+    </fieldset>
+
+    <fieldset class="setup__group">
+      <legend>{{ t('messages.setup.problems') }}</legend>
+      <div class="chips">
+        @each(option in ['all', 'official'])
+          <label class="chip">
+            <input
+              type="radio"
+              name="problems"
+              value="{{ option }}"
+              {{ (option === 'all') === current.includeCommunity ? 'checked' : '' }}
+            />
+            <span>{{ t(`messages.setup.collections.${option}`) }}</span>
+          </label>
+        @end
+      </div>
     </fieldset>
 
     @include('partials/selection_count')

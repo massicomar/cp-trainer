@@ -1,47 +1,54 @@
-@layouts.main({ title: 'Lesson results' })
-  <h1>Lesson results</h1>
+@layouts.main({ title: t('messages.summary.pageTitle') })
+  <h1>{{ t('messages.summary.heading') }}</h1>
 
   <ul class="scores">
     @each(score in summary.scores)
       <li class="score">
-        <span class="score__label">{{ score.label }}</span>
+        <span class="score__label">{{ t(`messages.kinds.${score.kind}`, {}, score.label) }}</span>
         <strong class="score__value">{{ score.right }}/{{ score.total }}</strong>
       </li>
     @end
   </ul>
 
   <ol class="results">
-    @each(item in summary.problems)
+    @each((item, index) in summary.problems)
       <li class="result">
         <h2 class="result__title">
           <a href="{{ item.problem.url }}" target="_blank" rel="noopener noreferrer">
             {{ item.problem.title }}
           </a>
-          <small>
-            {{ item.problem.source }}
-            ·
-            <span class="capitalize">{{ item.problem.tier }}</span>
-          </small>
+          <small>{{ item.problem.source }} · {{ t(`messages.tiers.${item.problem.tier}`) }}</small>
         </h2>
+        @!credit({ problem: item.problem })
         <ul class="marks">
           @each(result in item.results)
             <li class="mark mark--{{ result.outcome }}">
-              {{ result.label }}:
-              {{ outcomeLabels[result.outcome] }}
+              {{ t(`messages.kinds.${result.kind}`, {}, result.label) }}:
+              {{ t(`messages.outcomes.${result.outcome}`) }}
             </li>
           @end
         </ul>
         <p class="result__observation">
-          <strong>Key observation:</strong>
-          {{ item.problem.explanationMd }}
+          <strong>{{ t('messages.summary.keyObservation') }}</strong>
+          <span lang="en">{{ item.problem.explanationMd }}</span>
         </p>
         @if(item.problem.traps.length)
-          <ul class="traps">
+          <ul class="traps" lang="en">
             @each(trap in item.problem.traps)
               <li>{{ trap }}</li>
             @end
           </ul>
         @end
+
+        <p class="report">
+          <a
+            href="/lessons/{{ summary.lesson.id }}/report?problem={{ index }}"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ t('messages.play.report') }}
+          </a>
+        </p>
       </li>
     @end
   </ol>
@@ -49,8 +56,8 @@
   <div class="actions">
     <form method="post" action="/lessons/{{ summary.lesson.id }}/next">
       {{ csrfField() }}
-      <button type="submit" class="button button--primary">Next lesson</button>
+      <button type="submit" class="button button--primary">{{ t('messages.summary.next') }}</button>
     </form>
-    <a class="button" href="{{ changeUrl }}">Change selection</a>
+    <a class="button" href="{{ changeUrl }}">{{ t('messages.summary.change') }}</a>
   </div>
 @end

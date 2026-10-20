@@ -1,0 +1,16 @@
+{{-- One answers.techniques row: technique + role. --}}
+@let(i = $props.get('index'))
+@let(answer = $props.get('answer'))
+<div class="row" data-row>
+  @!contribute.techniqueSelect({
+    name: `techniques[${i}][id]`,
+    selected: answer.id,
+    groups: $props.get('groups'),
+  })
+  <select name="techniques[{{ i }}][role]" class="input input--narrow" aria-label="Role">
+    @each(role in $props.get('roles'))
+      <option value="{{ role }}" {{ role === answer.role ? 'selected' : '' }}>{{ role }}</option>
+    @end
+  </select>
+  <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+</div>

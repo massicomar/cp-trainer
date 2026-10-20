@@ -1,0 +1,54 @@
+{{-- The generated file and its checks. HTMX swaps this after every form change. --}}
+<aside id="preview" class="builder__preview" aria-live="polite">
+  <h2>The file</h2>
+  @if(preview.path)
+    <p>Save it as <code>{{ preview.path }}</code> in the content repo.</p>
+  @else
+    <p class="muted">The path appears once there's an id and an intended subject.</p>
+  @end
+  @if(!preview.started)
+    <p class="muted">
+      Start with the id, title and summary; problems CI would reject show up here.
+    </p>
+  @elseif(preview.check.errors.length)
+    <div class="notice notice--error">
+      <strong>CI would reject this file:</strong>
+      <ul>
+        @each(message in preview.check.errors)
+          <li>{{ message }}</li>
+        @end
+      </ul>
+    </div>
+  @else
+    <p class="notice notice--ok">
+      Looks good: this passes the same checks as the content repo’s CI.
+    </p>
+  @end
+  @if(preview.started && preview.check.warnings.length)
+    <div class="notice notice--warn">
+      <ul>
+        @each(message in preview.check.warnings)
+          <li>{{ message }}</li>
+        @end
+      </ul>
+    </div>
+  @end
+
+  <div class="actions">
+    <button type="button" class="button" data-copy="#preview-json">Copy</button>
+    <a class="button" href="{{ preview.downloadHref }}" download="{{ preview.downloadName }}">
+      Download
+    </a>
+    @if(preview.github)
+      <a class="button" href="{{ preview.github.url }}" target="_blank" rel="noopener">
+        {{
+          preview.github.prefilled
+            ? 'Open on GitHub'
+            : 'Edit on GitHub (paste it there)'
+        }}
+      </a>
+    @end
+  </div>
+
+  <pre class="json"><code id="preview-json">{{ preview.json }}</code></pre>
+</aside>

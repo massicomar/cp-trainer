@@ -1,0 +1,18 @@
+{{-- Every technique, grouped by subject. --}}
+@let(selected = $props.get('selected') ?? '')
+<select
+  name="{{ $props.get('name') }}"
+  class="input"
+  aria-label="{{ $props.get('label') ?? 'Technique' }}"
+>
+  <option value="">Choose a technique…</option>
+  @each(group in $props.get('groups'))
+    <optgroup label="{{ group.subject.name }}">
+      @each(technique in group.techniques)
+        <option value="{{ technique.id }}" {{ technique.id === selected ? 'selected' : '' }}>
+          {{ technique.name }}
+        </option>
+      @end
+    </optgroup>
+  @end
+</select>

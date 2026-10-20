@@ -1,7 +1,7 @@
 import { ProblemSchema } from '#database/schema'
 import { booleanColumn, jsonColumn } from '#database/column_types'
 import Layer from '#models/layer'
-import type { ProblemStatus, Tier } from '#types/content'
+import type { Collection, ProblemStatus, Tier } from '#types/content'
 import { column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 
@@ -14,6 +14,7 @@ export default class Problem extends ProblemSchema {
 
   declare status: ProblemStatus
   declare tier: Tier
+  declare collection: Collection
 
   @column(booleanColumn)
   declare constraintsVerified: boolean

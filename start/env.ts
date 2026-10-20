@@ -32,4 +32,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   CONTENT_DIR: Env.schema.string.optional(),
   // Also play draft problems (author preview). Defaults to false.
   CONTENT_INCLUDE_DRAFTS: Env.schema.boolean.optional(),
+  // The content repo on GitHub, for "Report a problem" and the contribute page.
+  CONTENT_REPO_URL: Env.schema.string.optional({ format: 'url', tld: true }),
 })

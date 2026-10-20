@@ -1,0 +1,15 @@
+{{--
+  "Added by @author", with a tag for community-added problems. The @ is part
+  of the expression because Edge treats an @ right before a mustache as an
+  escape.
+--}}
+@let(problem = $props.get('problem'))
+<p class="credit">
+  {{ t('messages.credit.addedBy') }}
+  <a href="https://github.com/{{ problem.author }}" target="_blank" rel="noopener noreferrer">
+    {{ `@${problem.author}` }}
+  </a>
+  @if(problem.collection === 'community')
+    <span class="tag">{{ t('messages.credit.community') }}</span>
+  @end
+</p>
