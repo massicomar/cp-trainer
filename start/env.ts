@@ -30,4 +30,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_PATH: Env.schema.string.optional(),
   // Checkout of the cp-trainer-content repo. Defaults to ../cp-trainer-content.
   CONTENT_DIR: Env.schema.string.optional(),
+  // Also play draft problems (author preview). Defaults to false.
+  CONTENT_INCLUDE_DRAFTS: Env.schema.boolean.optional(),
 })

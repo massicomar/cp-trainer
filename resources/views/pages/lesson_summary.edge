@@ -1,0 +1,56 @@
+@layouts.main({ title: 'Lesson results' })
+  <h1>Lesson results</h1>
+
+  <ul class="scores">
+    @each(score in summary.scores)
+      <li class="score">
+        <span class="score__label">{{ score.label }}</span>
+        <strong class="score__value">{{ score.right }}/{{ score.total }}</strong>
+      </li>
+    @end
+  </ul>
+
+  <ol class="results">
+    @each(item in summary.problems)
+      <li class="result">
+        <h2 class="result__title">
+          <a href="{{ item.problem.url }}" target="_blank" rel="noopener noreferrer">
+            {{ item.problem.title }}
+          </a>
+          <small>
+            {{ item.problem.source }}
+            ·
+            <span class="capitalize">{{ item.problem.tier }}</span>
+          </small>
+        </h2>
+        <ul class="marks">
+          @each(result in item.results)
+            <li class="mark mark--{{ result.outcome }}">
+              {{ result.label }}:
+              {{ outcomeLabels[result.outcome] }}
+            </li>
+          @end
+        </ul>
+        <p class="result__observation">
+          <strong>Key observation:</strong>
+          {{ item.problem.explanationMd }}
+        </p>
+        @if(item.problem.traps.length)
+          <ul class="traps">
+            @each(trap in item.problem.traps)
+              <li>{{ trap }}</li>
+            @end
+          </ul>
+        @end
+      </li>
+    @end
+  </ol>
+
+  <div class="actions">
+    <form method="post" action="/lessons/{{ summary.lesson.id }}/next">
+      {{ csrfField() }}
+      <button type="submit" class="button button--primary">Next lesson</button>
+    </form>
+    <a class="button" href="{{ changeUrl }}">Change selection</a>
+  </div>
+@end

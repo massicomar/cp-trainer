@@ -1,0 +1,154 @@
+{{--
+  The whole lesson area. Every form posts normally (works without JS) and
+  HTMX swaps this element with the server's response.
+--}}
+@let(base = `/lessons/${play.lesson.id}`)
+<div id="play" class="play">
+  <header class="play__top">
+    <ol class="progress" aria-label="Problem {{ play.problemNumber }} of {{ play.problemCount }}">
+      @each(state in play.progress)
+        <li class="progress__step progress__step--{{ state }}"></li>
+      @end
+    </ol>
+    <p class="play__meta">
+      Problem
+      {{ play.problemNumber }}
+      of
+      {{ play.problemCount }}
+      <span class="pill">{{ play.subjectNames.join(' · ') }}</span>
+    </p>
+  </header>
+
+  <article class="problem">
+    @if(play.problem.status === 'draft')
+      <span class="badge">Draft</span>
+    @end
+    @if(play.problem.summaryMd)
+      <p class="problem__summary">{{ play.problem.summaryMd }}</p>
+    @else
+      <p class="problem__summary muted">No summary written yet.</p>
+    @end
+
+    <div class="constraints">
+      <span class="constraints__label">Constraints</span>
+      <span>{{ play.problem.constraintsText }}</span>
+    </div>
+  </article>
+
+  <section class="layer" aria-live="polite">
+    <p class="layer__step">Question {{ play.stepNumber }} of {{ play.stepCount }}</p>
+    <h2 class="layer__prompt">{{ play.question.prompt }}</h2>
+    @if(!play.feedback)
+      <form
+        class="options"
+        method="post"
+        action="{{ base }}/answer"
+        hx-post="{{ base }}/answer"
+        hx-target="#play"
+        hx-swap="outerHTML"
+      >
+        {{ csrfField() }}
+        <input type="hidden" name="layerId" value="{{ play.question.layer.id }}" />
+        @each(option in play.question.options)
+          <button type="submit" name="option" value="{{ option.id }}" class="option">
+            {{ option.text }}
+          </button>
+        @end
+      </form>
+
+      <div class="layer__footer">
+        <form
+          method="post"
+          action="{{ base }}/give-up"
+          hx-post="{{ base }}/give-up"
+          hx-target="#play"
+          hx-swap="outerHTML"
+        >
+          {{ csrfField() }}
+          <input type="hidden" name="layerId" value="{{ play.question.layer.id }}" />
+          <button type="submit" class="button button--ghost">Give up</button>
+        </form>
+        <form
+          method="post"
+          action="{{ base }}/skip"
+          hx-post="{{ base }}/skip"
+          hx-target="#play"
+          hx-swap="outerHTML"
+        >
+          {{ csrfField() }}
+          <button type="submit" class="button button--ghost">Skip problem</button>
+        </form>
+      </div>
+    @else
+      <ul class="options options--answered">
+        @each(option in play.feedback.options)
+          <li class="option option--{{ option.mark }} {{ option.picked ? 'option--picked' : '' }}">
+            {{ option.text }}
+            @if(option.picked)
+              <span class="option__tag">your answer</span>
+            @end
+          </li>
+        @end
+      </ul>
+
+      <div class="verdict verdict--{{ play.feedback.outcome }}" role="status">
+        @if(play.feedback.outcome === 'correct')
+          <p class="verdict__title">Correct.</p>
+        @elseif(play.feedback.outcome === 'overkill')
+          <p class="verdict__title">That works, but there's a simpler way:</p>
+          <p class="verdict__answer">{{ play.feedback.expectedText }}</p>
+        @elseif(play.feedback.outcome === 'wrong')
+          <p class="verdict__title">Not quite. The answer is:</p>
+          <p class="verdict__answer">{{ play.feedback.expectedText }}</p>
+        @else
+          <p class="verdict__title">Here's the answer:</p>
+          <p class="verdict__answer">{{ play.feedback.expectedText }}</p>
+        @end
+        @if(play.feedback.pickedWhy)
+          <p class="verdict__why">{{ play.feedback.pickedWhy }}</p>
+        @end
+        @if(play.feedback.explanation)
+          <p class="verdict__explanation">{{ play.feedback.explanation }}</p>
+        @end
+      </div>
+      @if(play.isLastStep)
+        <div class="reveal">
+          <p class="reveal__label">This was</p>
+          <h3 class="reveal__title">
+            <a href="{{ play.problem.url }}" target="_blank" rel="noopener noreferrer">
+              {{ play.problem.title }}
+            </a>
+            <small>{{ play.problem.source }}</small>
+          </h3>
+          @if(play.problem.traps.length)
+            <p class="reveal__label">Traps</p>
+            <ul class="traps">
+              @each(trap in play.problem.traps)
+                <li>{{ trap }}</li>
+              @end
+            </ul>
+          @end
+        </div>
+      @end
+
+      <form
+        method="post"
+        action="{{ base }}/continue"
+        hx-post="{{ base }}/continue"
+        hx-target="#play"
+        hx-swap="outerHTML"
+      >
+        {{ csrfField() }}
+        <button type="submit" class="button button--primary button--wide" autofocus>
+          @if(!play.isLastStep)
+            Continue
+          @elseif(play.isLastProblem)
+            See results
+          @else
+            Next problem
+          @end
+        </button>
+      </form>
+    @end
+  </section>
+</div>

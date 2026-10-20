@@ -28,6 +28,20 @@ The dev database is `tmp/db.sqlite3`. Delete it to start over.
 
 The content commands read `CONTENT_DIR`, which defaults to the sibling checkout `../cp-trainer-content`. When the content repo changes its schemas, run `npm run fixtures:schema`; a test fails until you do.
 
+Sessions only use `ready` problems. While the bank is still all drafts, set `CONTENT_INCLUDE_DRAFTS=true` in `.env` to play them anyway (drafts show a "Draft" badge, and "No summary written yet" until someone writes one).
+
+### Where things are
+
+| Path                                  | What                                                                         |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| `app/services/session_selection.ts`   | subjects + tiers → matching problems, counts                                 |
+| `app/services/lesson_planner.ts`      | picks a lesson's problems (round-robin, unseen first, pairs, distractor cap) |
+| `app/services/question_builder.ts`    | which layers a problem asks, and each layer's options                        |
+| `app/services/answer_grader.ts`       | option → correct / overkill / wrong                                          |
+| `app/services/lesson_flow.ts`         | the lesson state machine: answer, give up, skip, continue, summary           |
+| `app/middleware/player_middleware.ts` | anonymous player from the signed `pid` cookie                                |
+| `resources/views/partials/play.edge`  | the lesson area that HTMX swaps after every action                           |
+
 ## Run the production stack locally (Docker)
 
 The same `docker-compose.yml` that runs on the VPS, plus a Caddy of its own (the `local` profile) standing in for the shared one on the VPS. Needs Docker Desktop running and ports 80/443 free.

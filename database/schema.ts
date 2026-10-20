@@ -7,6 +7,29 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class AttemptSchema extends BaseModel {
+  static $columns = ['chosen', 'createdAt', 'id', 'layerId', 'lessonId', 'msTaken', 'outcome', 'playerId', 'problemId'] as const
+  $columns = AttemptSchema.$columns
+  @column()
+  declare chosen: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare layerId: string
+  @column()
+  declare lessonId: number
+  @column()
+  declare msTaken: number | null
+  @column()
+  declare outcome: string
+  @column()
+  declare playerId: string
+  @column()
+  declare problemId: string
+}
+
 export class LayerSchema extends BaseModel {
   static $columns = ['accepted', 'deprecated', 'explanationMd', 'id', 'kind', 'options', 'position', 'problemId', 'prompt'] as const
   $columns = LayerSchema.$columns
@@ -28,6 +51,46 @@ export class LayerSchema extends BaseModel {
   declare problemId: string
   @column()
   declare prompt: string
+}
+
+export class LessonSchema extends BaseModel {
+  static $columns = ['createdAt', 'cursorLayer', 'cursorProblem', 'finishedAt', 'id', 'layerStartedAt', 'playerId', 'problemIds', 'status', 'subjectIds', 'tiers'] as const
+  $columns = LessonSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare cursorLayer: number
+  @column()
+  declare cursorProblem: number
+  @column.dateTime()
+  declare finishedAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare layerStartedAt: DateTime
+  @column()
+  declare playerId: string
+  @column()
+  declare problemIds: any
+  @column()
+  declare status: string
+  @column()
+  declare subjectIds: any
+  @column()
+  declare tiers: any
+}
+
+export class PlayerSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'lastSeenAt', 'preferences'] as const
+  $columns = PlayerSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column.dateTime()
+  declare lastSeenAt: DateTime
+  @column()
+  declare preferences: any | null
 }
 
 export class ProblemAnswerSchema extends BaseModel {

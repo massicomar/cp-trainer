@@ -52,7 +52,7 @@ test.group('ContentSync', (group) => {
     assert.strictEqual(subjects[0].hidden, false)
 
     const techniques = await Technique.all()
-    assert.lengthOf(techniques, 9)
+    assert.lengthOf(techniques, 10)
     const linear = techniques.find((t) => t.id === 'dp.linear')!
     assert.equal(linear.subjectId, 'dp')
     assert.deepEqual(linear.confusableWith, ['dp.coin-change', 'other.greedy'])
@@ -157,7 +157,7 @@ test.group('ContentSync', (group) => {
 
     assert.deepEqual(await countRows(), before)
     assert.deepInclude(report.problems, { added: 0, changed: 0, unchanged: 4, missing: 0 })
-    assert.deepEqual(report.layers, { active: 10, deprecated: 0 })
+    assert.deepEqual(report.layers, { active: 11, deprecated: 0 })
   })
 
   test('counts changed files', async ({ assert }) => {

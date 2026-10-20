@@ -21,6 +21,18 @@
     ]
   },
   "explanation": "Process vertices in topological order and extend the best path into each.",
-  "extraLayers": [],
+  "extraLayers": [
+    {
+      "key": "dp-state",
+      "kind": "dp-state",
+      "prompt": "What should the DP state represent?",
+      "options": [
+        { "id": "a", "text": "dp[v] = longest path ending at v" },
+        { "id": "b", "text": "dp[v] = number of paths ending at v", "why": "Counts paths instead of measuring them." }
+      ],
+      "accepted": ["a"],
+      "explanation": "Only the best length into v matters for extending it."
+    }
+  ],
   "deprecated": false
 }

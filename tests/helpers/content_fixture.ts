@@ -2,6 +2,8 @@ import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import app from '@adonisjs/core/services/app'
+import ContentSync from '#services/content_sync'
 
 /**
  * A small content repo (tests/fixtures/content) with the real JSON Schemas.
@@ -9,6 +11,15 @@ import { fileURLToPath } from 'node:url'
  * changes them.
  */
 export const FIXTURE_DIR = fileURLToPath(new URL('../fixtures/content', import.meta.url))
+
+/**
+ * Loads the fixture repo into the test database, for tests that need content.
+ */
+export async function syncFixtureContent() {
+  const contentSync = await app.container.make(ContentSync)
+  const result = await contentSync.syncDirectory(FIXTURE_DIR)
+  if (!result.ok) throw new Error(result.errors.map((e) => `${e.file}: ${e.message}`).join('\n'))
+}
 
 /**
  * A throwaway copy of the fixture repo that a test can edit freely.

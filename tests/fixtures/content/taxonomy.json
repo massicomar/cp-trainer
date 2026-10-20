@@ -16,6 +16,7 @@
       "name": "Graphs",
       "techniques": [
         { "id": "graphs.bfs", "name": "BFS" },
+        { "id": "graphs.dijkstra", "name": "Dijkstra" },
         { "id": "graphs.toposort", "name": "Topological sort" }
       ]
     },

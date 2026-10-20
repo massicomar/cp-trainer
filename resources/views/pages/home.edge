@@ -1,7 +1,90 @@
-@layouts.main()
-  <h1>CP Trainer</h1>
-  <p>
-    Read a competitive programming problem, then pick the subject, the technique and, for DP, the state and transition that solve it.
+@layouts.main({ title: 'Practice' })
+  <h1>What do you want to practice?</h1>
+  <p class="muted">
+    Read a problem, then name the subject, the technique and, for DP, the state and transition.
+    Each lesson is {{ lessonSize }} problems.
   </p>
-  <p class="muted">Lessons are not playable yet.</p>
+
+  @flashMessage('error')
+    <p class="notice notice--error" role="alert">{{ $message }}</p>
+  @end
+
+  {{--
+    Toggling a chip refreshes the match count (HTMX GET on change).
+    Start submits the form normally.
+  --}}
+  <form
+    id="setup"
+    class="setup"
+    method="post"
+    action="/lessons"
+    hx-get="/selection/count"
+    hx-trigger="change"
+    hx-target="#selection-count"
+    hx-swap="outerHTML"
+  >
+    {{ csrfField() }}
+
+    <fieldset class="setup__group">
+      <legend>Subjects</legend>
+      <div class="presets">
+        <button type="button" class="link-button" data-preset-subjects="{{ presets.all }}">
+          All subjects
+        </button>
+        @if(presets.dp)
+          <button type="button" class="link-button" data-preset-subjects="{{ presets.dp }}">
+            Only DP
+          </button>
+        @end
+        @if(presets.last)
+          <button
+            type="button"
+            class="link-button"
+            data-preset-subjects="{{ presets.last.subjects.join(',') }}"
+            data-preset-tiers="{{ presets.last.tiers.join(',') }}"
+          >
+            Same as last time
+          </button>
+        @end
+      </div>
+      <div class="chips">
+        @each(subject in subjects)
+          <label class="chip">
+            <input
+              type="checkbox"
+              name="subjects[]"
+              value="{{ subject.id }}"
+              {{ current.subjects.includes(subject.id) ? 'checked' : '' }}
+            />
+            <span>{{ subject.name }} <small>{{ perSubject[subject.id] ?? 0 }}</small></span>
+          </label>
+        @end
+      </div>
+      @inputError('subjects')
+        <p class="field-error">Pick at least one subject.</p>
+      @end
+    </fieldset>
+
+    <fieldset class="setup__group">
+      <legend>Difficulty</legend>
+      <div class="chips">
+        @each(tier in tiers)
+          <label class="chip">
+            <input
+              type="checkbox"
+              name="tiers[]"
+              value="{{ tier }}"
+              {{ current.tiers.includes(tier) ? 'checked' : '' }}
+            />
+            <span class="capitalize">{{ tier }}</span>
+          </label>
+        @end
+      </div>
+      @inputError('tiers')
+        <p class="field-error">Pick at least one difficulty.</p>
+      @end
+    </fieldset>
+
+    @include('partials/selection_count')
+  </form>
 @end

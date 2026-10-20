@@ -11,7 +11,10 @@
   "constraints": { "text": "n ≤ 1e5, m ≤ 2e5", "verified": true },
   "answers": {
     "subjects": [{ "id": "graphs", "role": "intended" }],
-    "techniques": [{ "id": "graphs.bfs", "role": "intended" }]
+    "techniques": [
+      { "id": "graphs.bfs", "role": "intended" },
+      { "id": "graphs.dijkstra", "role": "overkill" }
+    ]
   },
   "distractors": ["dp.linear"],
   "explanation": "Unweighted edges: the first time you reach a node is along a shortest path.",
