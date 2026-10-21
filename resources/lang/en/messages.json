@@ -20,6 +20,8 @@
     "problems": "Problems",
     "presets": {
       "all": "All subjects",
+      "module1": "Module 1",
+      "module2": "Module 2",
       "dp": "Only DP",
       "last": "Same as last time"
     },
@@ -40,7 +42,11 @@
       "short": "{count, plural, one {# problem matches} other {# problems match}} · the lesson will be shorter than {size}",
       "full": "{count} problems match · {size} per lesson"
     },
-    "start": "Start lesson"
+    "start": "Start lesson",
+    "drills": {
+      "legend": "Quick questions",
+      "include": "Quick Big O questions between problems"
+    }
   },
   "tiers": {
     "easy": "Easy",
@@ -74,12 +80,160 @@
     "seeResults": "See results",
     "report": "Report a problem"
   },
+  "drills": {
+    "label": "Quick question",
+    "skip": "Skip question",
+    "fitsYes": "Fits",
+    "fitsNo": "Doesn’t fit",
+    "prompts": {
+      "max-big-o": "With {bound}, what’s the largest time complexity that fits in about one second?",
+      "algorithm-big-o": "What’s the time complexity of {name}?",
+      "max-n": "With {complexity}, up to roughly which n fits in one second?",
+      "fits": "{complexity} with {bound}: does it fit in one second?"
+    },
+    "explain": {
+      "budget": "About {ops} simple operations fit in one second.",
+      "fits": "With {bound}, {complexity} is {calc} operations, which fits.",
+      "aboutTheLimit": "With {bound}, {complexity} is {calc} operations, about the limit.",
+      "tooMany": "With {bound}, {complexity} would be {calc} operations, far too many."
+    }
+  },
   "summary": {
     "pageTitle": "Lesson results",
     "heading": "Lesson results",
     "keyObservation": "Key observation:",
     "next": "Next lesson",
     "change": "Change selection"
+  },
+  "contribute": {
+    "pageTitle": "Contribute a problem",
+    "heading": "Contribute a problem",
+    "start": {
+      "intro": "You get a problem file to add to the content repo through a pull request. Nothing is saved on this site.",
+      "fromLink": "From a link",
+      "fromLinkHint": "CSES, AtCoder and Kattis links come back with the statement, title, constraints and difficulty filled in. Codeforces and SPOJ block automatic fetching, so those open the form with only the id, judge and link.",
+      "link": "Problem link",
+      "import": "Import",
+      "manual": "Manual",
+      "manualHint": "An empty form; you fill in everything, including the statement.",
+      "manualButton": "Start with an empty form",
+      "edit": "Edit a problem in the bank",
+      "problemId": "Problem id",
+      "editButton": "Edit"
+    },
+    "intro": "Fill in the form and the file updates as you type, checked the same way the content repo’s CI checks it. Then copy or download it into the content repo and open a pull request, or use “Open on GitHub”. Nothing is saved on this site.",
+    "guide": "How to write a good problem",
+    "otherWays": "← Other ways to start",
+    "notices": {
+      "fetched": "Imported from {judge}: the statement, title, constraints and difficulty (where the judge gives one) are filled in. Check them, then add the answers and explanations.",
+      "blockedBefore": "{judge} blocks automatic fetching, so only the id, judge and link are filled in. Paste the statement yourself, or use",
+      "blockedAfter": "once the file is in the repo.",
+      "failed": "Couldn’t read the problem from {judge} right now, so only the id, judge and link are filled in.",
+      "notFound": "There’s no problem with the id “{id}”. Starting a new one instead.",
+      "editing": "Editing",
+      "editingNote": "Ids are permanent: changing it makes a new problem.",
+      "invalidLink": "That isn’t a problem link from CSES, AtCoder, Kattis, Codeforces or SPOJ.",
+      "existing": "{id} is already in the bank, so here it is to edit."
+    },
+    "groups": {
+      "problem": "The problem",
+      "reads": "What the player reads",
+      "answers": "Answers",
+      "wrong": "Wrong options and pairs",
+      "after": "After answering",
+      "layers": "Extra layers",
+      "other": "Other"
+    },
+    "fields": {
+      "id": "Id",
+      "idHint": "<source>-<code>, lowercase, permanent: cses-1158, cf-166b",
+      "title": "Original title",
+      "titleHint": "hidden from players until they finish the problem",
+      "judge": "Judge",
+      "url": "URL",
+      "tier": "Tier",
+      "scale": "Rating scale",
+      "rating": "Rating",
+      "ratingHint": "1700, E/M/H, 3.6…",
+      "status": "Status",
+      "collection": "Collection",
+      "author": "Your GitHub username",
+      "statement": "Statement",
+      "statementHint": "copied exactly from the judge, without the title, samples or limits. Keep its LaTeX ($N$, \\leq).",
+      "constraints": "Constraints",
+      "constraintsHint": "the main clue, so be exact",
+      "verified": "I checked these limits on the judge page",
+      "answersHint": "Exactly one intended subject and one intended technique inside it. Other correct approaches are accepted; ones that work but are heavier are overkill.",
+      "subjects": "Subjects",
+      "addSubject": "+ Add subject",
+      "techniques": "Techniques",
+      "addTechnique": "+ Add technique",
+      "appearsIn": "Also show in sessions of",
+      "appearsInHint": "(distractors: a greedy problem that should appear in DP sessions)",
+      "distractors": "Distractors",
+      "distractorsHint": "techniques someone would plausibly but wrongly pick; any subject",
+      "distractor": "Distractor",
+      "addDistractor": "+ Add distractor",
+      "pairWith": "Pair with",
+      "pairWithHint": "same story, different constraints",
+      "addPair": "+ Add pair",
+      "explanation": "Explanation",
+      "explanationHint": "why the intended technique fits; point at the constraint that gives it away",
+      "explanationEs": "Explanation in Spanish",
+      "explanationEsHint": "optional; players with the UI in Spanish see it",
+      "traps": "Traps",
+      "trapsHint": "common bugs or wrong ideas; the Spanish version is optional",
+      "trap": "Trap",
+      "trapEs": "Trap in Spanish",
+      "trapEsPlaceholder": "In Spanish (optional)",
+      "addTrap": "+ Add trap",
+      "layersHint": "DP problems get a state layer and a transition layer. Other kinds are optional.",
+      "addDpState": "+ DP state layer",
+      "addDpTransition": "+ DP transition layer",
+      "addOtherLayer": "+ Other layer",
+      "notes": "Notes for authors",
+      "notesHint": "never shown to players",
+      "deprecated": "Retired (deprecated). Never delete a problem file; retire it instead.",
+      "update": "Update preview",
+      "remove": "Remove",
+      "chooseSubject": "Choose a subject…",
+      "chooseTechnique": "Choose a technique…",
+      "subject": "Subject",
+      "technique": "Technique",
+      "role": "Role"
+    },
+    "layer": {
+      "key": "Key",
+      "kind": "Kind",
+      "remove": "Remove layer",
+      "prompt": "Prompt",
+      "optionsHint": "Options are a, b, c… in this order. Tick the correct ones. The Spanish “why” is optional.",
+      "addOption": "+ Add option",
+      "explanation": "Explanation (shown after answering)",
+      "explanationEs": "Explanation in Spanish",
+      "optional": "optional",
+      "correct": "correct",
+      "optionText": "Option text",
+      "why": "Why it’s wrong (shown when picked)",
+      "whyEs": "Why, in Spanish (optional)",
+      "whyEsLabel": "Why, in Spanish",
+      "removeOption": "Remove option"
+    },
+    "preview": {
+      "heading": "The file",
+      "saveAsBefore": "Save it as",
+      "saveAsAfter": "in the content repo.",
+      "noPath": "The path appears once there’s an id and an intended subject.",
+      "notStarted": "Start with the id, title and summary; problems CI would reject show up here.",
+      "rejected": "CI would reject this file:",
+      "ok": "Looks good: this passes the same checks as the content repo’s CI.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "download": "Download",
+      "openGithub": "Open on GitHub",
+      "editGithub": "Edit on GitHub (paste it there)",
+      "statement": "The statement as players see it"
+    }
   },
   "kinds": {
     "subject": "Subject",
@@ -89,7 +243,11 @@
     "complexity": "Complexity",
     "observation": "Observation",
     "node-stores": "Node contents",
-    "trap": "Trap"
+    "trap": "Trap",
+    "max-big-o": "Largest complexity for a bound",
+    "algorithm-big-o": "Complexity of an algorithm",
+    "max-n": "Largest n for a complexity",
+    "fits": "Fits or not"
   },
   "outcomes": {
     "correct": "right",

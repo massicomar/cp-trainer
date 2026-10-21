@@ -21,6 +21,7 @@ document.addEventListener('click', (event) => {
   tick('subjects[]', button.dataset.presetSubjects)
   tick('tiers[]', button.dataset.presetTiers)
   tick('problems', button.dataset.presetProblems)
+  tick('drills', button.dataset.presetDrills)
   form.dispatchEvent(new Event('change', { bubbles: true }))
 })
 
@@ -72,6 +73,6 @@ document.addEventListener('click', async (event) => {
   const source = document.querySelector(button.dataset.copy)
   await navigator.clipboard.writeText(source.textContent)
   const label = button.textContent
-  button.textContent = 'Copied'
+  button.textContent = button.dataset.copied ?? 'Copied'
   setTimeout(() => (button.textContent = label), 1500)
 })

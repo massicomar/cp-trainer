@@ -1,0 +1,53 @@
+@layouts.main({ title: t('messages.contribute.pageTitle') })
+  <h1>{{ t('messages.contribute.heading') }}</h1>
+  <p class="muted">{{ t('messages.contribute.start.intro') }}</p>
+
+  @flashMessage('error')
+    <p class="notice notice--error" role="alert">{{ $message }}</p>
+  @end
+
+  <div class="start-options">
+    <section class="builder__group">
+      <h2>{{ t('messages.contribute.start.fromLink') }}</h2>
+      <p class="hint">{{ t('messages.contribute.start.fromLinkHint') }}</p>
+      <form method="post" action="/contribute/import" class="field">
+        {{ csrfField() }}
+        <label class="field">
+          <span>{{ t('messages.contribute.start.link') }}</span>
+          <input
+            name="url"
+            type="url"
+            class="input"
+            placeholder="https://cses.fi/problemset/task/1158"
+            required
+          />
+        </label>
+        <button type="submit" class="button button--primary">
+          {{ t('messages.contribute.start.import') }}
+        </button>
+      </form>
+    </section>
+
+    <section class="builder__group">
+      <h2>{{ t('messages.contribute.start.manual') }}</h2>
+      <p class="hint">{{ t('messages.contribute.start.manualHint') }}</p>
+      <a class="button" href="/contribute?new=1">{{ t('messages.contribute.start.manualButton') }}</a>
+    </section>
+
+    <section class="builder__group">
+      <h2>{{ t('messages.contribute.start.edit') }}</h2>
+      <form method="get" action="/contribute" class="field">
+        <label class="field">
+          <span>{{ t('messages.contribute.start.problemId') }}</span>
+          <input name="from" class="input" list="problem-ids" placeholder="cses-1158" required />
+        </label>
+        <datalist id="problem-ids">
+          @each(id in problemIds)
+            <option value="{{ id }}"></option>
+          @end
+        </datalist>
+        <button type="submit" class="button">{{ t('messages.contribute.start.editButton') }}</button>
+      </form>
+    </section>
+  </div>
+@end

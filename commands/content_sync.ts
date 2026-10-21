@@ -24,7 +24,7 @@ export default class ContentSyncCommand extends BaseCommand {
       return
     }
 
-    const { subjects, techniques, problems, layers } = result.report
+    const { subjects, techniques, problems, layers, drills } = result.report
     this.logger.success(`synced ${root}`)
     this.logger.info(`${subjects} subjects, ${techniques} techniques`)
     this.logger.info(
@@ -33,5 +33,8 @@ export default class ContentSyncCommand extends BaseCommand {
         `${problems.unchanged} unchanged, ${problems.missing} no longer in the repo`
     )
     this.logger.info(`${layers.active} layers, ${layers.deprecated} newly deprecated`)
+    this.logger.info(
+      `drills: ${drills.bigO ? 'Big O table' : 'no Big O table'}, ${drills.algorithms} algorithms, ${drills.deprecated} newly deprecated`
+    )
   }
 }

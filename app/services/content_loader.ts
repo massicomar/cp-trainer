@@ -4,10 +4,13 @@ import { join, relative, sep } from 'node:path'
 import { Ajv2020, type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 import type {
+  BigOFile,
   ContentIssue,
   LoadedContent,
+  LoadedDrills,
   LoadedProblem,
   ProblemFile,
+  SubjectDrillsFile,
   TaxonomyFile,
 } from '#types/content'
 
@@ -33,7 +36,7 @@ export const GENERATED_LAYER_KEYS = ['subject', 'technique'] as const
  *
  * Validation uses the repo's own JSON Schemas (schema/*.schema.json), plus the
  * cross-file checks the app depends on: one intended answer, every id
- * referenced exists, extra layers are well formed. Authoring rules that don't
+ * referenced exists, extra layers are well formed, drills are consistent. Authoring rules that don't
  * affect the app (URL allowlist, leak lint, no deletions) stay in the content
  * repo's CI.
  */
@@ -135,6 +138,7 @@ export default class ContentLoader {
 
       this.checkAnswers(problem, file, subjectIds, techniqueSubject, err)
       this.checkExtraLayers(problem, file, err)
+      this.checkSpanish(problem, file, err)
     }
 
     for (const { problem, file } of problems.values()) {
@@ -144,8 +148,98 @@ export default class ContentLoader {
       }
     }
 
+    const drills = await this.loadDrills(root, taxonomy, err)
+
     if (errors.length) return { ok: false, errors }
-    return { ok: true, content: { taxonomy, problems: [...problems.values()] } }
+    return { ok: true, content: { taxonomy, problems: [...problems.values()], drills } }
+  }
+
+  /**
+   * drills/big-o.json (the table generated drills use) and drills/<subject>.json
+   * (algorithms with their complexity). The folder is optional.
+   */
+  protected async loadDrills(
+    root: string,
+    taxonomy: TaxonomyFile,
+    err: (file: string, message: string) => void
+  ): Promise<LoadedDrills> {
+    const drills: LoadedDrills = { bigO: null, subjects: [] }
+    let entries: string[]
+    try {
+      entries = await readdir(join(root, 'drills'))
+    } catch {
+      return drills
+    }
+    const names = entries.filter((n) => n.endsWith('.json')).sort()
+    if (!names.length) return drills
+
+    let validateBigO: ValidateFunction
+    let validateSubject: ValidateFunction
+    try {
+      const ajv = new Ajv2020({ allErrors: true, strict: true })
+      addFormats.default(ajv)
+      validateBigO = ajv.compile(await readJson(join(root, 'schema/big-o.schema.json')))
+      validateSubject = ajv.compile(await readJson(join(root, 'schema/subject-drills.schema.json')))
+    } catch (error) {
+      err('schema/', `cannot load the drill JSON Schemas: ${messageOf(error)}`)
+      return drills
+    }
+
+    for (const name of names) {
+      const file = `drills/${name}`
+      let data: unknown
+      try {
+        data = await readJson(join(root, file))
+      } catch (error) {
+        err(file, `invalid JSON: ${messageOf(error)}`)
+        continue
+      }
+
+      if (name === 'big-o.json') {
+        if (!validateBigO(data)) {
+          for (const e of validateBigO.errors ?? []) err(file, schemaMessage(e))
+          continue
+        }
+        const table = data as BigOFile
+        const ids = table.complexities.map((c) => c.id)
+        if (new Set(ids).size !== ids.length) err(file, 'duplicate complexity id')
+        table.complexities.forEach((c, i) => {
+          const previous = table.complexities[i - 1]
+          if (previous && c.maxN > previous.maxN) {
+            err(file, `${c.id}: maxN is larger than ${previous.id}'s, which grows slower`)
+          }
+        })
+        drills.bigO = table
+        continue
+      }
+
+      if (!validateSubject(data)) {
+        for (const e of validateSubject.errors ?? []) err(file, schemaMessage(e))
+        continue
+      }
+      const subjectDrills = data as SubjectDrillsFile
+      const subject = taxonomy.subjects.find((s) => s.id === subjectDrills.subject)
+      if (name !== `${subjectDrills.subject}.json`) {
+        err(file, `file name must be ${subjectDrills.subject}.json`)
+      }
+      if (!subject) err(file, `unknown subject ${subjectDrills.subject}`)
+      else if (subject.hidden)
+        err(file, `subject ${subject.id} is hidden; its drills can't be asked`)
+      const seen = new Set<string>()
+      for (const algorithm of subjectDrills.algorithms) {
+        if (seen.has(algorithm.id)) err(file, `duplicate algorithm id ${algorithm.id}`)
+        seen.add(algorithm.id)
+        const plain = (latex: string) => latex.replace(/\s+/g, '')
+        if (algorithm.wrong.some((w) => plain(w) === plain(algorithm.complexity))) {
+          err(file, `${algorithm.id}: a wrong option equals the right complexity`)
+        }
+        if (new Set(algorithm.wrong.map(plain)).size !== algorithm.wrong.length) {
+          err(file, `${algorithm.id}: two wrong options are the same`)
+        }
+      }
+      drills.subjects.push({ file, drills: subjectDrills })
+    }
+    return drills
   }
 
   /**
@@ -172,6 +266,7 @@ export default class ContentLoader {
     const file = problem as ProblemFile
     this.checkAnswers(file, '', world.subjectIds, world.techniqueSubject, err)
     this.checkExtraLayers(file, '', err)
+    this.checkSpanish(file, '', err)
     for (const id of file.pairWith ?? []) {
       if (id === file.id) err('', 'pairWith references itself')
       else if (!world.problemIds.has(id)) err('', `pairWith: unknown problem ${id}`)
@@ -256,6 +351,33 @@ export default class ContentLoader {
       }
       if (layer.accepted.length >= layer.options.length) {
         err(file, `layer ${layer.key}: every option is accepted`)
+      }
+    }
+  }
+
+  /**
+   * The `es` block can only translate what exists in English.
+   */
+  protected checkSpanish(
+    problem: ProblemFile,
+    file: string,
+    err: (file: string, message: string) => void
+  ) {
+    if (!problem.es) return
+    const traps = problem.traps ?? []
+    if (problem.es.traps && problem.es.traps.length !== traps.length) {
+      err(file, `es.traps has ${problem.es.traps.length} entries, traps has ${traps.length}`)
+    }
+    for (const [key, layer] of Object.entries(problem.es.layers ?? {})) {
+      const english = problem.extraLayers?.find((l) => l.key === key)
+      if (!english) {
+        err(file, `es.layers: no extra layer with key ${key}`)
+        continue
+      }
+      for (const id of Object.keys(layer.why ?? {})) {
+        if (!english.options.some((o) => o.id === id)) {
+          err(file, `es.layers.${key}.why: no option ${id}`)
+        }
       }
     }
   }

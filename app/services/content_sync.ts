@@ -2,6 +2,7 @@ import { inject } from '@adonisjs/core'
 import db from '@adonisjs/lucid/services/db'
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import { DateTime } from 'luxon'
+import DrillItem from '#models/drill_item'
 import Layer from '#models/layer'
 import Problem from '#models/problem'
 import Subject from '#models/subject'
@@ -27,6 +28,13 @@ export interface SyncReport {
   layers: {
     active: number
     /** Marked deprecated by this sync (problem or extraLayer removed) */
+    deprecated: number
+  }
+  drills: {
+    /** drills/big-o.json is there. */
+    bigO: boolean
+    algorithms: number
+    /** Marked deprecated by this sync (file or algorithm removed) */
     deprecated: number
   }
 }
@@ -64,8 +72,9 @@ export default class ContentSync {
       const problems = await this.syncProblems(content, trx)
       await this.syncAnswers(content, trx)
       const layers = await this.syncLayers(content, trx)
+      const drills = await this.syncDrills(content, trx)
 
-      return { ...subjects, problems, layers }
+      return { ...subjects, problems, layers, drills }
     })
   }
 
@@ -140,7 +149,9 @@ export default class ContentSync {
       constraintsText: problem.constraints.text,
       constraintsVerified: problem.constraints.verified,
       explanationMd: problem.explanation,
+      explanationEs: problem.es?.explanation ?? null,
       traps: problem.traps ?? [],
+      trapsEs: problem.es?.traps ?? [],
       pairWith: problem.pairWith ?? [],
       distractors: problem.distractors ?? [],
       deprecated: problem.deprecated,
@@ -218,6 +229,56 @@ export default class ContentSync {
 
     return { active: rows.length, deprecated: stale.length }
   }
+
+  protected async syncDrills(content: LoadedContent, trx: TransactionClientContract) {
+    const { bigO, subjects } = content.drills
+    const rows = [
+      ...(bigO
+        ? [
+            {
+              id: 'general:big-o',
+              subjectId: null,
+              kind: 'big-o' as const,
+              data: {
+                opsPerSecond: bigO.opsPerSecond,
+                complexities: bigO.complexities,
+                nValues: bigO.nValues,
+              },
+              deprecated: false,
+            },
+          ]
+        : []),
+      ...subjects.flatMap(({ drills }) =>
+        drills.algorithms.map((algorithm) => ({
+          id: `${drills.subject}:${algorithm.id}`,
+          subjectId: drills.subject,
+          kind: 'algorithm' as const,
+          data: {
+            name: algorithm.name,
+            complexity: algorithm.complexity,
+            wrong: algorithm.wrong,
+            explanation: algorithm.explanation,
+            explanationEs: algorithm.es?.explanation ?? null,
+          },
+          deprecated: false,
+        }))
+      ),
+    ]
+    if (rows.length) await DrillItem.updateOrCreateMany('id', rows, { client: trx })
+
+    const activeIds = new Set(rows.map((row) => row.id))
+    const current = await DrillItem.query({ client: trx }).where('deprecated', false).select('id')
+    const stale = current.map((item) => item.id).filter((id) => !activeIds.has(id))
+    if (stale.length) {
+      await DrillItem.query({ client: trx }).whereIn('id', stale).update({ deprecated: true })
+    }
+
+    return {
+      bigO: bigO !== null,
+      algorithms: rows.length - (bigO ? 1 : 0),
+      deprecated: stale.length,
+    }
+  }
 }
 
 /**
@@ -264,6 +325,7 @@ export function layerRows(problem: ProblemFile) {
       accepted: correct(problem.answers.subjects),
       // Nothing to explain yet: the problem's explanation names the technique.
       explanationMd: null,
+      explanationEs: null,
       deprecated: false,
     },
     {
@@ -275,18 +337,25 @@ export function layerRows(problem: ProblemFile) {
       options: null,
       accepted: correct(problem.answers.techniques),
       explanationMd: problem.explanation,
+      explanationEs: problem.es?.explanation ?? null,
       deprecated: false,
     },
-    ...(problem.extraLayers ?? []).map((layer, index) => ({
-      id: `${problem.id}:${layer.key}`,
-      problemId: problem.id,
-      position: 3 + index,
-      kind: layer.kind,
-      prompt: layer.prompt,
-      options: layer.options,
-      accepted: layer.accepted,
-      explanationMd: layer.explanation,
-      deprecated: false,
-    })),
+    ...(problem.extraLayers ?? []).map((layer, index) => {
+      const es = problem.es?.layers?.[layer.key]
+      return {
+        id: `${problem.id}:${layer.key}`,
+        problemId: problem.id,
+        position: 3 + index,
+        kind: layer.kind,
+        prompt: layer.prompt,
+        options: layer.options.map((option) =>
+          es?.why?.[option.id] ? { ...option, whyEs: es.why[option.id] } : option
+        ),
+        accepted: layer.accepted,
+        explanationMd: layer.explanation,
+        explanationEs: es?.explanation ?? null,
+        deprecated: false,
+      }
+    }),
   ]
 }

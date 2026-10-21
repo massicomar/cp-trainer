@@ -22,19 +22,25 @@ export function formFields(problem: ProblemFile): Record<string, any> {
     appearsIn: problem.appearsIn ?? [],
     distractors: problem.distractors ?? [],
     explanation: problem.explanation,
-    traps: problem.traps ?? [],
+    explanationEs: problem.es?.explanation ?? '',
+    traps: (problem.traps ?? []).map((trap, i) => ({ en: trap, es: problem.es?.traps?.[i] ?? '' })),
     pairWith: problem.pairWith ?? [],
-    layers: (problem.extraLayers ?? []).map((layer) => ({
-      key: layer.key,
-      kind: layer.kind,
-      prompt: layer.prompt,
-      explanation: layer.explanation,
-      options: layer.options.map((option) => ({
-        text: option.text,
-        why: option.why ?? '',
-        correct: on(layer.accepted.includes(option.id)),
-      })),
-    })),
+    layers: (problem.extraLayers ?? []).map((layer) => {
+      const es = problem.es?.layers?.[layer.key]
+      return {
+        key: layer.key,
+        kind: layer.kind,
+        prompt: layer.prompt,
+        explanation: layer.explanation,
+        explanationEs: es?.explanation ?? '',
+        options: layer.options.map((option) => ({
+          text: option.text,
+          why: option.why ?? '',
+          whyEs: es?.why?.[option.id] ?? '',
+          correct: on(layer.accepted.includes(option.id)),
+        })),
+      }
+    }),
     notes: problem.notes ?? '',
     deprecated: on(problem.deprecated),
   }

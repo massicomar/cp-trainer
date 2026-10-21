@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cp-trainer.local/schema/subject-drills.schema.json",
+  "title": "CP Trainer subject drills",
+  "description": "drills/<subject>.json: algorithms of one subject with their time complexity. Lessons in that subject ask \"What's the time complexity of …?\".",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "subject", "algorithms"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "subject": {
+      "description": "A visible subject id from taxonomy.json; the file is named after it.",
+      "type": "string"
+    },
+    "algorithms": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/algorithm" }
+    }
+  },
+  "$defs": {
+    "algorithm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "complexity", "wrong", "explanation"],
+      "properties": {
+        "id": {
+          "description": "Permanent within the file, e.g. dijkstra-heap.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "maxLength": 64
+        },
+        "name": {
+          "description": "English, like technique names. Specific enough to have one complexity (\"Dijkstra with a binary heap\", not \"Dijkstra\").",
+          "type": "string",
+          "minLength": 1
+        },
+        "complexity": {
+          "description": "LaTeX, without $ delimiters, e.g. O((n + m) \\log n). Use n, m, q… as the usual statement variables.",
+          "type": "string",
+          "minLength": 1
+        },
+        "wrong": {
+          "description": "Exactly 3 plausible wrong complexities, all different from the right one.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "explanation": {
+          "description": "Why it has that complexity, in one or two sentences.",
+          "type": "string",
+          "minLength": 1
+        },
+        "es": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "explanation": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

@@ -113,6 +113,58 @@ test.group('ContentLoader', (group) => {
     ])
   })
 
+  test('checks that the Spanish block only translates what exists', async ({ assert }) => {
+    await fixture.editJson(COINS, (p) => {
+      p.es.traps.push('otra')
+      p.es.layers['dp-state'].why.z = 'no existe'
+      p.es.layers.nope = { explanation: 'tampoco' }
+    })
+
+    const errors = errorsOf(await load())
+
+    assert.sameMembers(errors, [
+      `${COINS}: es.traps has 2 entries, traps has 1`,
+      `${COINS}: es.layers.dp-state.why: no option z`,
+      `${COINS}: es.layers: no extra layer with key nope`,
+    ])
+  })
+
+  test('loads the drills', async ({ assert }) => {
+    const result = await load()
+
+    assert.isTrue(result.ok)
+    if (!result.ok) return
+    assert.equal(result.content.drills.bigO?.complexities.length, 10)
+    assert.deepEqual(
+      result.content.drills.subjects.map((s) => [s.file, s.drills.algorithms.length]),
+      [['drills/graphs.json', 2]]
+    )
+  })
+
+  test('checks drill files', async ({ assert }) => {
+    await fixture.editJson('drills/big-o.json', (t) => (t.complexities[4].maxN = 1e7))
+    await fixture.editJson('drills/graphs.json', (d) => {
+      d.algorithms[0].wrong[1] = 'O(n+m)'
+      d.algorithms.push({ ...d.algorithms[1] })
+    })
+    await fixture.writeJson('drills/other.json', {
+      schemaVersion: 1,
+      subject: 'other',
+      algorithms: [
+        { id: 'x', name: 'X', complexity: 'O(1)', wrong: ['a', 'b', 'c'], explanation: 'E' },
+      ],
+    })
+
+    const errors = errorsOf(await load())
+
+    assert.sameMembers(errors, [
+      "drills/big-o.json: n2: maxN is larger than n-log-n's, which grows slower",
+      'drills/graphs.json: bfs: a wrong option equals the right complexity',
+      'drills/graphs.json: duplicate algorithm id dijkstra-heap',
+      "drills/other.json: subject other is hidden; its drills can't be asked",
+    ])
+  })
+
   test('rejects duplicate problem ids', async ({ assert }) => {
     await fixture.writeJson('problems/graphs/fx-bfs-copy.json', await fixture.readJson(BFS))
 

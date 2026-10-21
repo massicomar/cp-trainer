@@ -3,14 +3,17 @@ import { booleanColumn, jsonColumn } from '#database/column_types'
 import Attempt from '#models/attempt'
 import Player from '#models/player'
 import type { Tier } from '#types/content'
+import type { LessonItem } from '#types/drills'
 import type { Selection } from '#types/play'
 import { belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 
 /**
- * Up to 5 problems drawn from a selection. `cursorProblem` indexes
- * `problemIds`; `cursorLayer` indexes the layers asked for that problem (see
- * QuestionBuilder.steps). Both live in the row, so a refresh resumes in place.
+ * Up to 5 problems drawn from a selection, with drills between them unless
+ * the player turned them off. `items` is the order they're played in;
+ * `cursorItem` indexes it and `cursorLayer` indexes the layers asked for the
+ * current problem (see QuestionBuilder.steps). Both live in the row, so a
+ * refresh resumes in place.
  */
 export default class Lesson extends LessonSchema {
   declare status: 'active' | 'done'
@@ -27,6 +30,12 @@ export default class Lesson extends LessonSchema {
   @column(booleanColumn)
   declare includeCommunity: boolean
 
+  @column(booleanColumn)
+  declare includeDrills: boolean
+
+  @column(jsonColumn)
+  declare items: LessonItem[]
+
   @belongsTo(() => Player)
   declare player: BelongsTo<typeof Player>
 
@@ -38,6 +47,7 @@ export default class Lesson extends LessonSchema {
       subjects: this.subjectIds,
       tiers: this.tiers,
       includeCommunity: this.includeCommunity,
+      includeDrills: this.includeDrills,
     }
   }
 

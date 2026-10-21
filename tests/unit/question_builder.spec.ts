@@ -58,7 +58,9 @@ test.group('QuestionBuilder', (group) => {
     assert.deepEqual(stepKeys('fx-lottery', ['dp']), ['technique'])
   })
 
-  test('offers every visible subject plus "None of these" on the subject layer', ({ assert }) => {
+  test('offers only the session’s subjects plus "None of these" on the subject layer', ({
+    assert,
+  }) => {
     const question = builder.build(
       layer('fx-longest-path', 'subject'),
       context('fx-longest-path', { sessionSubjects: ['dp', 'graphs'] })
@@ -69,11 +71,38 @@ test.group('QuestionBuilder', (group) => {
       [
         ['dp', 'correct'],
         ['graphs', 'correct'],
-        ['number-theory', 'correct'],
         ['other', 'wrong'],
       ]
     )
     assert.equal(question.expected.id, 'dp')
+  })
+
+  test('the expected subject is a correct one on screen, else "None of these"', ({ assert }) => {
+    // fx-longest-path: intended dp, accepted graphs and number-theory.
+    const viaAccepted = builder.build(
+      layer('fx-longest-path', 'subject'),
+      context('fx-longest-path', { sessionSubjects: ['graphs', 'number-theory'] })
+    )
+    assert.notInclude(
+      viaAccepted.options.map((o) => o.id),
+      'dp'
+    )
+    assert.equal(viaAccepted.expected.id, 'graphs')
+
+    // No correct subject selected (a problem that only `appearsIn` them).
+    const viaAppearsIn = builder.build(
+      layer('fx-bfs', 'subject'),
+      context('fx-bfs', { sessionSubjects: ['dp', 'number-theory'] })
+    )
+    assert.deepEqual(
+      viaAppearsIn.options.map((o) => [o.id, o.role]),
+      [
+        ['dp', 'wrong'],
+        ['number-theory', 'wrong'],
+        ['other', 'correct'],
+      ]
+    )
+    assert.equal(viaAppearsIn.expected.id, 'other')
   })
 
   test('works in the accepted subject the player picked, if it has a technique', ({ assert }) => {

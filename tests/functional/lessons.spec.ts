@@ -3,6 +3,7 @@ import type { ApiClient } from '@japa/api-client'
 import app from '@adonisjs/core/services/app'
 import testUtils from '@adonisjs/core/services/test_utils'
 import Attempt from '#models/attempt'
+import DrillAttempt from '#models/drill_attempt'
 import Lesson from '#models/lesson'
 import Player from '#models/player'
 import Problem from '#models/problem'
@@ -12,10 +13,16 @@ import { syncFixtureContent } from '#tests/helpers/content_fixture'
 const ALL_TIERS = ['easy', 'medium', 'hard']
 
 /**
- * The setup form's field names, as a browser sends them.
+ * The setup form's field names, as a browser sends them. Drills are off
+ * unless a test asks for them (the box sits after a hidden "off").
  */
-function setupForm(subjects: string[], tiers: string[], problems = 'all') {
-  return { 'subjects[]': subjects, 'tiers[]': tiers, problems }
+function setupForm(subjects: string[], tiers: string[], problems = 'all', drills = false) {
+  return {
+    'subjects[]': subjects,
+    'tiers[]': tiers,
+    problems,
+    'drills': drills ? ['off', 'on'] : 'off',
+  }
 }
 
 /**
@@ -25,11 +32,12 @@ async function startLesson(
   client: ApiClient,
   subjects: string[],
   tiers = ALL_TIERS,
-  problems = 'all'
+  problems = 'all',
+  drills = false
 ) {
   const response = await client
     .post('/lessons')
-    .form(setupForm(subjects, tiers, problems))
+    .form(setupForm(subjects, tiers, problems, drills))
     .withCsrfToken()
     .redirects(0)
   response.assertStatus(302)
@@ -39,12 +47,25 @@ async function startLesson(
 }
 
 /**
- * The question on screen, plus the step token its forms carry.
+ * The problem question on screen, plus the step token its forms carry.
  */
 async function currentQuestion(lesson: Lesson) {
   const flow = await app.container.make(LessonFlow)
   const state = await flow.state(lesson)
-  return { ...state!.question, step: state!.stepToken }
+  if (state?.type !== 'problem') throw new Error('expected a problem on screen')
+  return { ...state.question, step: state.stepToken }
+}
+
+/**
+ * Whatever is on screen, problem layer or drill.
+ */
+async function currentStep(lesson: Lesson) {
+  const flow = await app.container.make(LessonFlow)
+  const state = await flow.state(lesson)
+  if (!state) throw new Error('the lesson is done')
+  const options: { id: string; role: string }[] =
+    state.type === 'problem' ? state.question.options : state.drill.options
+  return { state, options, step: state.stepToken }
 }
 
 test.group('Session setup', (group) => {
@@ -61,6 +82,16 @@ test.group('Session setup', (group) => {
     response.assertTextIncludes('Dynamic Programming')
     response.assertTextIncludes('Number Theory')
     response.assertTextIncludes('3 problems match')
+  })
+
+  test('offers the two modules as presets, with the subjects that exist', async ({ client }) => {
+    const response = await client.get('/')
+
+    // The fixtures have dp, graphs and number-theory.
+    response.assertTextIncludes('data-preset-subjects="dp,graphs"')
+    response.assertTextIncludes('Module 1')
+    response.assertTextIncludes('data-preset-subjects="number-theory"')
+    response.assertTextIncludes('Module 2')
   })
 
   test('refreshes the count for a selection', async ({ client }) => {
@@ -91,6 +122,7 @@ test.group('Session setup', (group) => {
       subjects: ['graphs'],
       tiers: ['hard'],
       includeCommunity: true,
+      includeDrills: false,
     })
 
     const setup = await client.get('/').withCookie('pid', pid)
@@ -131,7 +163,7 @@ test.group('Session setup', (group) => {
     response.assertStatus(302)
     response.assertHeader(
       'location',
-      '/?subjects%5B%5D=number-theory&tiers%5B%5D=easy&tiers%5B%5D=medium&tiers%5B%5D=hard'
+      '/?subjects%5B%5D=number-theory&tiers%5B%5D=easy&tiers%5B%5D=medium&tiers%5B%5D=hard&drills=off'
     )
     assert.lengthOf(await Lesson.all(), 0)
   })
@@ -327,6 +359,7 @@ test.group('Playing a lesson', (group) => {
       subjects: ['graphs'],
       tiers: ['hard'],
       includeCommunity: true,
+      includeDrills: false,
     })
     response.assertHeader('location', `/lessons/${next.id}`)
   })
@@ -384,5 +417,183 @@ test.group('Playing a lesson', (group) => {
     assert.deepEqual(summary.problems[0].results, [
       { kind: 'technique', label: 'Technique', outcome: 'skipped' },
     ])
+  })
+
+  test('with the UI in Spanish, explanations use the es block and fall back to English', async ({
+    client,
+    assert,
+  }) => {
+    const { pid, lesson } = await startLesson(client, ['dp'])
+    const seen: string[] = []
+
+    for (let guard = 0; lesson.status !== 'done' && guard < 30; guard++) {
+      const question = await currentQuestion(lesson)
+      // fx-coins: pick the wrong option on dp-state (it has a Spanish "why"), else answer right.
+      const option =
+        question.layer.id === 'fx-coins:dp-state'
+          ? 'b'
+          : question.options.find((o) => o.role === 'correct')!.id
+      const answered = await htmx(client, pid, lesson, 'answer', {
+        step: question.step,
+        option,
+      }).withPlainCookie('locale', 'es')
+      if (question.layer.problemId === 'fx-coins') seen.push(answered.text())
+      await htmx(client, pid, lesson, 'continue')
+      await lesson.refresh()
+    }
+
+    const [technique, state, transition] = seen
+    assert.include(technique, 'Monedas ilimitadas y un objetivo chico: dp sobre la suma.')
+    assert.include(state, 'lang="es"')
+    assert.include(state, 'Pierde la suma.')
+    assert.include(state, 'Solo importa la suma que falta.')
+    // No Spanish for the transition layer: the English explanation, marked as English.
+    assert.match(transition, /lang="en">\s*The last coin is one of the n values./)
+    assert.include(transition, 'Tomar primero la moneda más grande no es óptimo')
+
+    const summary = await client
+      .get(`/lessons/${lesson.id}/summary`)
+      .withCookie('pid', pid)
+      .withPlainCookie('locale', 'es')
+    summary.assertTextIncludes('Monedas ilimitadas y un objetivo chico')
+    const english = await client.get(`/lessons/${lesson.id}/summary`).withCookie('pid', pid)
+    english.assertTextIncludes('Unbounded coins and a small target')
+  })
+})
+
+test.group('Lessons with drills', (group) => {
+  group.each.setup(async () => {
+    const truncate = await testUtils.db().truncate()
+    await syncFixtureContent()
+    return truncate
+  })
+
+  function htmx(client: ApiClient, pid: string, lesson: Lesson, action: string, form = {}) {
+    return client
+      .post(`/lessons/${lesson.id}/${action}`)
+      .form(form)
+      .header('HX-Request', 'true')
+      .withCookie('pid', pid)
+      .withCsrfToken()
+  }
+
+  test('drills come after the 1st and 3rd problems and play like one-layer problems', async ({
+    client,
+    assert,
+  }) => {
+    const { pid, lesson } = await startLesson(client, ['dp', 'graphs'], ALL_TIERS, 'all', true)
+    assert.isTrue(lesson.includeDrills)
+    assert.deepEqual(
+      lesson.items.map((i) => i.type),
+      ['problem', 'drill', 'problem', 'problem', 'drill']
+    )
+
+    const page = await client.get(`/lessons/${lesson.id}`).withCookie('pid', pid)
+    page.assertTextIncludes('progress__step--drill')
+
+    const drillPages: string[] = []
+    for (let guard = 0; lesson.status !== 'done' && guard < 30; guard++) {
+      const { state, options, step } = await currentStep(lesson)
+      const right = options.find((o) => o.role === 'correct')!
+      const answered = await htmx(client, pid, lesson, 'answer', { step, option: right.id })
+      answered.assertTextIncludes('Correct.')
+      if (state.type === 'drill') drillPages.push(answered.text())
+      await htmx(client, pid, lesson, 'continue')
+      await lesson.refresh()
+    }
+
+    assert.equal(lesson.status, 'done')
+    assert.lengthOf(drillPages, 2)
+    for (const html of drillPages) {
+      assert.include(html, 'Quick question')
+      // Generated drills explain the arithmetic; algorithm drills, the authored text.
+      assert.match(html, /simple operations fit in one second|Each (vertex|edge)/)
+    }
+    const drills = await DrillAttempt.query().where('lesson_id', lesson.id).orderBy('item_index')
+    assert.deepEqual(
+      drills.map((d) => [d.itemIndex, d.outcome]),
+      [
+        [1, 'correct'],
+        [4, 'correct'],
+      ]
+    )
+    assert.equal(drills[0].answer, drills[0].chosen)
+
+    const summary = await client.get(`/lessons/${lesson.id}/summary`).withCookie('pid', pid)
+    const labels = drills.map((d) => `messages.kinds.${d.kind}`)
+    assert.lengthOf(labels, 2)
+    summary.assertTextIncludes('1/1')
+    assert.match(
+      summary.text(),
+      /Largest complexity|Complexity of an algorithm|Largest n|Fits or not/
+    )
+  })
+
+  test('a drill in Spanish explains in Spanish', async ({ client, assert }) => {
+    const { pid, lesson } = await startLesson(client, ['dp'], ALL_TIERS, 'all', true)
+    await htmx(client, pid, lesson, 'skip')
+    await lesson.refresh()
+    const { state, step } = await currentStep(lesson)
+    assert.equal(state.type, 'drill')
+
+    const response = await htmx(client, pid, lesson, 'give-up', { step }).withPlainCookie(
+      'locale',
+      'es'
+    )
+
+    response.assertTextIncludes('Pregunta rápida')
+    response.assertTextIncludes('Esta es la respuesta:')
+    // dp has no algorithm drills in the fixtures, so this one is generated.
+    response.assertTextIncludes('En un segundo entran unas')
+    const attempt = await DrillAttempt.findByOrFail('lesson_id', lesson.id)
+    assert.equal(attempt.outcome, 'gave_up')
+  })
+
+  test('skip on a drill records it as skipped and moves on', async ({ client, assert }) => {
+    const { pid, lesson } = await startLesson(client, ['dp'], ALL_TIERS, 'all', true)
+    await htmx(client, pid, lesson, 'skip') // the first problem
+    const response = await htmx(client, pid, lesson, 'skip') // the drill
+
+    response.assertTextIncludes('Problem 2 of')
+    const attempt = await DrillAttempt.findByOrFail('lesson_id', lesson.id)
+    assert.deepInclude(attempt.$attributes, { itemIndex: 1, outcome: 'skipped', chosen: null })
+  })
+
+  test('"Report a problem" on a drill names its file and what was asked', async ({
+    client,
+    assert,
+  }) => {
+    const { pid, lesson } = await startLesson(client, ['dp'], ALL_TIERS, 'all', true)
+    await htmx(client, pid, lesson, 'skip')
+
+    const response = await client
+      .get(`/lessons/${lesson.id}/report`)
+      .qs({ step: '1.0' })
+      .withCookie('pid', pid)
+      .redirects(0)
+
+    response.assertStatus(302)
+    const location = new URL(response.header('location')!)
+    assert.equal(location.searchParams.get('problem'), 'drills/big-o.json')
+    assert.match(location.searchParams.get('title')!, /^Report: drill (max-big-o|max-n|fits) \(/)
+    // Not reached yet: the drill after the 3rd problem.
+    const ahead = await client
+      .get(`/lessons/${lesson.id}/report`)
+      .qs({ step: '4.0' })
+      .withCookie('pid', pid)
+      .redirects(0)
+    ahead.assertHeader('location', `/lessons/${lesson.id}`)
+  })
+
+  test('the setup page has the quick questions box, remembered per player', async ({
+    client,
+    assert,
+  }) => {
+    const fresh = await client.get('/')
+    assert.match(fresh.text(), /name="drills" value="on"\s+checked/)
+
+    const { pid } = await startLesson(client, ['dp'], ALL_TIERS, 'all', false)
+    const setup = await client.get('/').withCookie('pid', pid)
+    assert.notMatch(setup.text(), /name="drills" value="on"\s+checked/)
   })
 })

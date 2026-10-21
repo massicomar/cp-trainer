@@ -22,6 +22,10 @@ export default class Problem extends ProblemSchema {
   @column(jsonColumn)
   declare traps: string[]
 
+  /** Same order as `traps`; a missing or empty entry means the English one. */
+  @column(jsonColumn)
+  declare trapsEs: string[]
+
   @column(jsonColumn)
   declare pairWith: string[]
 

@@ -13,6 +13,7 @@ const pick = (subjects: string[], tiers: Tier[] = ALL_TIERS, includeCommunity = 
   subjects,
   tiers,
   includeCommunity,
+  includeDrills: true,
 })
 
 test.group('SessionSelection', (group) => {
@@ -60,6 +61,18 @@ test.group('SessionSelection', (group) => {
     assert.isFalse(
       selection.normalize({ ...base, includeCommunity: false }, VISIBLE).includeCommunity
     )
+  })
+
+  test('includes drills unless the box is unticked or a stored selection says no', ({ assert }) => {
+    const base = { subjects: ['dp'], tiers: ['easy'] }
+    const drills = (input: Record<string, unknown>) =>
+      selection.normalize({ ...base, ...input }, VISIBLE).includeDrills
+
+    assert.isTrue(drills({}))
+    // The form: a hidden "off", then the checkbox's "on" when ticked.
+    assert.isTrue(drills({ drills: ['off', 'on'] }))
+    assert.isFalse(drills({ drills: 'off' }))
+    assert.isFalse(drills({ includeDrills: false }))
   })
 
   test('counts ready problems, including distractors that appear in the subject', async ({

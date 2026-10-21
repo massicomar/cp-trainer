@@ -141,5 +141,6 @@ function setupUrl(selection: Selection) {
   for (const subject of selection.subjects) query.append('subjects[]', subject)
   for (const tier of selection.tiers) query.append('tiers[]', tier)
   if (!selection.includeCommunity) query.append('problems', 'official')
+  if (!selection.includeDrills) query.append('drills', 'off')
   return `/?${query}`
 }

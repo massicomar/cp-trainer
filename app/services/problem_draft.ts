@@ -6,7 +6,7 @@ import Problem from '#models/problem'
 import Catalog from '#services/catalog'
 import ContentLoader from '#services/content_loader'
 import { hostAllowed, leakedWords } from '#services/content_rules'
-import type { ProblemFile } from '#types/content'
+import type { ProblemFile, ProblemSpanish } from '#types/content'
 
 export interface DraftCheck {
   /** Things content CI would reject. */
@@ -84,7 +84,8 @@ export default class ProblemDraft {
   /**
    * Builds the file from the form, in the same key order as the template and
    * the existing files. Empty rows are dropped; layer options get ids a, b, c…
-   * in the order they're listed.
+   * in the order they're listed. The Spanish fields become the `es` block at
+   * the end, which is left out when they're all empty.
    */
   fromForm(input: Record<string, any>): ProblemFile {
     const answers = (value: unknown) =>
@@ -92,29 +93,51 @@ export default class ProblemDraft {
         .map((row) => ({ id: text(row?.id), role: text(row?.role) || 'accepted' }))
         .filter((row) => row.id) as ProblemFile['answers']['subjects']
 
-    const extraLayers = rows(input.layers)
+    const layers = rows(input.layers)
       .map((layer) => {
         const options = rows(layer?.options)
           .map((option) => ({
             text: text(option?.text),
             why: text(option?.why),
+            whyEs: text(option?.whyEs),
             correct: isOn(option?.correct),
           }))
           .filter((option) => option.text)
+        const ids = options.map((_, i) => OPTION_IDS[i] ?? `option${i + 1}`)
+        const whyEs = Object.fromEntries(
+          options.flatMap((option, i) => (option.whyEs ? [[ids[i], option.whyEs]] : []))
+        )
+        const explanationEs = text(layer?.explanationEs)
         return {
-          key: text(layer?.key),
-          kind: text(layer?.kind) || 'custom',
-          prompt: text(layer?.prompt),
-          options: options.map((option, i) => ({
-            id: OPTION_IDS[i] ?? `option${i + 1}`,
-            text: option.text,
-            ...(option.why ? { why: option.why } : {}),
-          })),
-          accepted: options.flatMap((option, i) => (option.correct ? [OPTION_IDS[i]] : [])),
-          explanation: text(layer?.explanation),
+          layer: {
+            key: text(layer?.key),
+            kind: text(layer?.kind) || 'custom',
+            prompt: text(layer?.prompt),
+            options: options.map((option, i) => ({
+              id: ids[i],
+              text: option.text,
+              ...(option.why ? { why: option.why } : {}),
+            })),
+            accepted: options.flatMap((option, i) => (option.correct ? [ids[i]] : [])),
+            explanation: text(layer?.explanation),
+          },
+          es: {
+            ...(explanationEs ? { explanation: explanationEs } : {}),
+            ...(Object.keys(whyEs).length ? { why: whyEs } : {}),
+          },
         }
       })
-      .filter((layer) => layer.key || layer.prompt || layer.options.length)
+      .filter(({ layer }) => layer.key || layer.prompt || layer.options.length)
+
+    // Traps are rows of English + Spanish (older forms post plain strings).
+    const seen = new Set<string>()
+    const traps = rows(input.traps)
+      .map((row) =>
+        typeof row === 'string'
+          ? { en: text(row), es: '' }
+          : { en: text(row?.en), es: text(row?.es) }
+      )
+      .filter((row) => row.en && !seen.has(row.en) && seen.add(row.en))
 
     const problem: Record<string, unknown> = {
       $schema: '../../schema/problem.schema.json',
@@ -145,12 +168,22 @@ export default class ProblemDraft {
     if (appearsIn.length) problem.appearsIn = appearsIn
     problem.distractors = strings(input.distractors)
     problem.explanation = text(input.explanation)
-    problem.traps = strings(input.traps)
+    problem.traps = traps.map((row) => row.en)
     problem.pairWith = strings(input.pairWith)
-    problem.extraLayers = extraLayers
+    problem.extraLayers = layers.map(({ layer }) => layer)
     const notes = text(input.notes)
     if (notes) problem.notes = notes
     problem.deprecated = isOn(input.deprecated)
+
+    const es: ProblemSpanish = {}
+    const explanationEs = text(input.explanationEs)
+    if (explanationEs) es.explanation = explanationEs
+    if (traps.some((row) => row.es)) es.traps = traps.map((row) => row.es)
+    const layersEs = layers.filter(({ layer, es: l }) => layer.key && Object.keys(l).length)
+    if (layersEs.length) {
+      es.layers = Object.fromEntries(layersEs.map(({ layer, es: l }) => [layer.key, l]))
+    }
+    if (Object.keys(es).length) problem.es = es
 
     return problem as unknown as ProblemFile
   }

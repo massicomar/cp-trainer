@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/subject-drills.schema.json",
+  "schemaVersion": 1,
+  "subject": "graphs",
+  "algorithms": [
+    {
+      "id": "bfs",
+      "name": "BFS on an adjacency list",
+      "complexity": "O(n + m)",
+      "wrong": ["O(n \\cdot m)", "O(m \\log n)", "O(n^2)"],
+      "explanation": "Each vertex is queued once and each edge is looked at once from each end.",
+      "es": { "explanation": "Cada vértice entra una vez a la cola y cada arista se mira una vez desde cada extremo." }
+    },
+    {
+      "id": "dijkstra-heap",
+      "name": "Dijkstra with a binary heap",
+      "complexity": "O((n + m) \\log n)",
+      "wrong": ["O(n \\cdot m)", "O(n + m)", "O(n^2 \\log n)"],
+      "explanation": "Each edge can push one heap entry, and each heap operation costs O(log n)."
+    }
+  ]
+}

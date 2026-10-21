@@ -89,5 +89,19 @@
       "explanation": "The last coin is one of the n values."
     }
   ],
-  "deprecated": false
+  "deprecated": false,
+  "es": {
+    "explanation": "Monedas ilimitadas y un objetivo chico: dp sobre la suma.",
+    "traps": [
+      "Tomar primero la moneda más grande no es óptimo para cualquier conjunto de monedas."
+    ],
+    "layers": {
+      "dp-state": {
+        "explanation": "Solo importa la suma que falta.",
+        "why": {
+          "b": "Pierde la suma."
+        }
+      }
+    }
+  }
 }

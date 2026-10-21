@@ -340,6 +340,11 @@ h2 {
   background: var(--accent);
 }
 
+/* Drills are short, so their segment is too. */
+.progress__step--drill {
+  flex: 0.4;
+}
+
 .play__meta {
   display: flex;
   flex-wrap: wrap;
@@ -420,6 +425,11 @@ h2 {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* "Fits" / "Doesn't fit" side by side. */
+.options--pair {
+  grid-template-columns: 1fr 1fr;
 }
 
 .option {
@@ -673,6 +683,16 @@ button.option:hover {
 
 /* ---- Contribute page --------------------------------------------------- */
 
+.start-options {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.start-options h2 {
+  margin: 0;
+}
+
 /* The builder needs more room than the reading pages. */
 .container:has(.builder) {
   max-width: 76rem;
@@ -812,13 +832,32 @@ textarea.input {
   grid-template-columns: auto 1fr 1fr auto;
 }
 
+/* The Spanish "why" goes under the English one. */
+.row--option > input[name$='[whyEs]'] {
+  grid-column: 3;
+}
+
+.row--bilingual {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+}
+
 @media (max-width: 40rem) {
   .row--option {
     grid-template-columns: auto 1fr auto;
   }
 
-  .row--option > input[name$='[why]'] {
+  .row--option > input[name$='[why]'],
+  .row--option > input[name$='[whyEs]'] {
     grid-column: 2;
+  }
+
+  .row--bilingual {
+    grid-template-columns: 1fr auto;
+  }
+
+  .row--bilingual > input[name$='[es]'] {
+    grid-column: 1;
   }
 }
 

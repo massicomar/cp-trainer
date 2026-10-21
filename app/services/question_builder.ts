@@ -8,6 +8,7 @@ export interface QuestionOption {
   text: string
   /** Authored note shown after picking this option (extra layers only). */
   why?: string
+  whyEs?: string
   role: OptionRole
 }
 
@@ -18,6 +19,8 @@ export interface Question {
   /** The expected answer, named in the "works, but…" feedback for overkill picks. */
   expected: QuestionOption
   explanation: string | null
+  /** Spanish version, when the content has one. */
+  explanationEs: string | null
 }
 
 export interface QuestionContext {
@@ -46,7 +49,7 @@ export const ESCAPE_HATCH_CHANCE = 1 / 3
  * Turns a problem's layers into the questions a player sees.
  *
  * - Layer 1 (subject): asked only when the session has 2+ subjects. Options
- *   are every visible subject plus "None of these", in taxonomy order.
+ *   are the session's subjects plus "None of these", in taxonomy order.
  * - Layer 2 (technique): the expected technique of the subject the player is
  *   working in, plus distractors (see `techniqueQuestion`), shuffled.
  * - Layers 3+ (authored): asked when the problem's intended subject is part
@@ -100,19 +103,41 @@ export default class QuestionBuilder {
     return isAccepted && hasTechnique ? candidate : intended
   }
 
-  protected subjectQuestion(layer: Layer, { bundle, taxonomy }: QuestionContext): Question {
+  /**
+   * Only the subjects the player picked, plus "None of these" (the hidden
+   * subjects). When none of them is a correct subject (the problem is in the
+   * session through `appearsIn`), "None of these" is the right answer.
+   */
+  protected subjectQuestion(
+    layer: Layer,
+    { bundle, taxonomy, sessionSubjects }: QuestionContext
+  ): Question {
     const roles = rolesOf(bundle, 'subject')
-    const options = taxonomy.subjects.map((subject) => ({
+    const intended = intendedSubject(bundle)
+    const shown = taxonomy.subjects.filter((s) => s.hidden || sessionSubjects.includes(s.id))
+    const options = shown.map((subject) => ({
       id: subject.id,
       text: subject.name,
       role: optionRole(roles.get(subject.id)),
     }))
+    if (!options.some((o) => o.role === 'correct')) {
+      for (const option of options) {
+        if (taxonomy.subjectById.get(option.id)?.hidden) option.role = 'correct'
+      }
+    }
+    // Without a hidden subject to fall back on, show the intended one.
+    if (!options.some((o) => o.role === 'correct')) {
+      const subject = taxonomy.subjectById.get(intended)
+      options.push({ id: intended, text: subject?.name ?? intended, role: 'correct' })
+    }
     return {
       layer,
       prompt: layer.prompt,
       options,
-      expected: options.find((o) => o.id === intendedSubject(bundle))!,
+      expected:
+        options.find((o) => o.id === intended) ?? options.find((o) => o.role === 'correct')!,
       explanation: layer.explanationMd,
+      explanationEs: layer.explanationEs,
     }
   }
 
@@ -174,6 +199,7 @@ export default class QuestionBuilder {
       options: shuffle([expectedOption, ...overkill.map(option), ...wrong.map(option)], random),
       expected: expectedOption,
       explanation: layer.explanationMd,
+      explanationEs: layer.explanationEs,
     }
   }
 
@@ -183,6 +209,7 @@ export default class QuestionBuilder {
       id: o.id,
       text: o.text,
       why: o.why,
+      whyEs: o.whyEs,
       role: (layer.accepted.includes(o.id) ? 'correct' : 'wrong') as OptionRole,
     }))
     return {
@@ -191,6 +218,7 @@ export default class QuestionBuilder {
       options: shuffle(options, random),
       expected: options.find((o) => o.role === 'correct')!,
       explanation: layer.explanationMd,
+      explanationEs: layer.explanationEs,
     }
   }
 }

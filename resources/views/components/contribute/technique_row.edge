@@ -7,10 +7,21 @@
     selected: answer.id,
     groups: $props.get('groups'),
   })
-  <select name="techniques[{{ i }}][role]" class="input input--narrow" aria-label="Role">
+  <select
+    name="techniques[{{ i }}][role]"
+    class="input input--narrow"
+    aria-label="{{ t('messages.contribute.fields.role') }}"
+  >
     @each(role in $props.get('roles'))
       <option value="{{ role }}" {{ role === answer.role ? 'selected' : '' }}>{{ role }}</option>
     @end
   </select>
-  <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+  <button
+    type="button"
+    class="row__remove"
+    data-remove-row
+    aria-label="{{ t('messages.contribute.fields.remove') }}"
+  >
+    ×
+  </button>
 </div>

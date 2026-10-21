@@ -6,10 +6,12 @@
 @let(layer = $props.get('layer') ?? {})
 @let(options = layer.options && layer.options.length ? layer.options : [{}, {}, {}, {}])
 @let(accepted = layer.accepted ?? [])
+@let(es = $props.get('es') ?? {})
+@let(whyEs = es.why ?? {})
 <div class="layer-editor" data-row data-rows-scope>
   <div class="layer-editor__head">
     <label class="field">
-      <span>Key</span>
+      <span>{{ t('messages.contribute.layer.key') }}</span>
       <input
         name="{{ prefix }}[key]"
         value="{{ layer.key ?? '' }}"
@@ -18,26 +20,29 @@
       />
     </label>
     <label class="field">
-      <span>Kind</span>
+      <span>{{ t('messages.contribute.layer.kind') }}</span>
       <select name="{{ prefix }}[kind]" class="input">
         @each(kind in $props.get('kinds'))
           <option value="{{ kind }}" {{ kind === layer.kind ? 'selected' : '' }}>{{ kind }}</option>
         @end
       </select>
     </label>
-    <button type="button" class="row__remove" data-remove-row>Remove layer</button>
+    <button type="button" class="row__remove" data-remove-row>
+      {{ t('messages.contribute.layer.remove') }}
+    </button>
   </div>
   <label class="field">
-    <span>Prompt</span>
+    <span>{{ t('messages.contribute.layer.prompt') }}</span>
     <input name="{{ prefix }}[prompt]" value="{{ layer.prompt ?? '' }}" class="input" />
   </label>
-  <p class="hint">Options are a, b, c… in this order. Tick the correct ones.</p>
+  <p class="hint">{{ t('messages.contribute.layer.optionsHint') }}</p>
   <div class="rows" data-rows="options" data-next="{{ options.length }}">
     @each((option, j) in options)
       @!contribute.optionRow({
         prefix,
         index: j,
         option,
+        whyEs: whyEs[option.id],
         correct: accepted.includes(option.id),
       })
     @end
@@ -45,13 +50,27 @@
   <template data-row-template="options" data-placeholder="__j__">
     @!contribute.optionRow({ prefix, index: '__j__', option: {}, correct: false })
   </template>
-  <button type="button" class="link-button" data-add-row="options">+ Add option</button>
+  <button type="button" class="link-button" data-add-row="options">
+    {{ t('messages.contribute.layer.addOption') }}
+  </button>
   <label class="field">
-    <span>Explanation (shown after answering)</span>
+    <span>{{ t('messages.contribute.layer.explanation') }}</span>
     <textarea
       name="{{ prefix }}[explanation]"
       class="input"
       rows="2"
     >{{ layer.explanation ?? '' }}</textarea>
+  </label>
+  <label class="field">
+    <span>
+      {{ t('messages.contribute.layer.explanationEs') }}
+      <small>{{ t('messages.contribute.layer.optional') }}</small>
+    </span>
+    <textarea
+      name="{{ prefix }}[explanationEs]"
+      class="input"
+      rows="2"
+      lang="es"
+    >{{ es.explanation ?? '' }}</textarea>
   </label>
 </div>

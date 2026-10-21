@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import app from '@adonisjs/core/services/app'
 import testUtils from '@adonisjs/core/services/test_utils'
 import db from '@adonisjs/lucid/services/db'
+import DrillItem from '#models/drill_item'
 import Layer from '#models/layer'
 import Problem from '#models/problem'
 import Subject from '#models/subject'
@@ -92,7 +93,29 @@ test.group('ContentSync', (group) => {
       id: 'b',
       text: 'dp[i] = fewest coins using the first i coin types',
       why: 'Loses the sum.',
+      whyEs: 'Pierde la suma.',
     })
+  })
+
+  test('copies the Spanish texts next to the English ones', async ({ assert }) => {
+    await sync()
+
+    const coins = await Problem.query().where('id', 'fx-coins').preload('layers').firstOrFail()
+    assert.equal(coins.explanationEs, 'Monedas ilimitadas y un objetivo chico: dp sobre la suma.')
+    assert.deepEqual(coins.trapsEs, [
+      'Tomar primero la moneda más grande no es óptimo para cualquier conjunto de monedas.',
+    ])
+    const layer = (key: string) => coins.layers.find((l) => l.id === `fx-coins:${key}`)!
+    assert.isNull(layer('subject').explanationEs)
+    assert.equal(layer('technique').explanationEs, coins.explanationEs)
+    assert.equal(layer('dp-state').explanationEs, 'Solo importa la suma que falta.')
+    assert.isNull(layer('dp-transition').explanationEs)
+    assert.notProperty(layer('dp-state').options![0], 'whyEs')
+
+    // A problem without an es block.
+    const bfs = await Problem.findOrFail('fx-bfs')
+    assert.isNull(bfs.explanationEs)
+    assert.deepEqual(bfs.trapsEs, [])
   })
 
   test('stores every answer with its role', async ({ assert }) => {
@@ -169,6 +192,37 @@ test.group('ContentSync', (group) => {
     assert.deepInclude(report.problems, { added: 0, changed: 1, unchanged: 3 })
     const bfs = await Problem.findOrFail('fx-bfs')
     assert.equal(bfs.title, 'Renamed')
+  })
+
+  test('copies the drills: the Big O table and each algorithm', async ({ assert }) => {
+    const report = await sync()
+
+    assert.deepEqual(report.drills, { bigO: true, algorithms: 2, deprecated: 0 })
+    const table = await DrillItem.findOrFail('general:big-o')
+    assert.isNull(table.subjectId)
+    assert.equal((table.data as { opsPerSecond: number }).opsPerSecond, 1e8)
+    const bfs = await DrillItem.findOrFail('graphs:bfs')
+    assert.equal(bfs.subjectId, 'graphs')
+    assert.include(bfs.data, { name: 'BFS on an adjacency list', complexity: 'O(n + m)' })
+    assert.match((bfs.data as { explanationEs: string }).explanationEs, /^Cada vértice/)
+    const dijkstra = await DrillItem.findOrFail('graphs:dijkstra-heap')
+    assert.isNull((dijkstra.data as { explanationEs: null }).explanationEs)
+  })
+
+  test('marks drills that left the repo as deprecated', async ({ assert }) => {
+    await sync()
+    await fixture.editJson('drills/graphs.json', (d) => d.algorithms.pop())
+    await fixture.remove('drills/big-o.json')
+
+    const report = await sync()
+
+    assert.deepEqual(report.drills, { bigO: false, algorithms: 1, deprecated: 2 })
+    const [dijkstra, table, bfs] = await Promise.all(
+      ['graphs:dijkstra-heap', 'general:big-o', 'graphs:bfs'].map((id) => DrillItem.findOrFail(id))
+    )
+    assert.isTrue(dijkstra.deprecated)
+    assert.isTrue(table.deprecated)
+    assert.isFalse(bfs.deprecated)
   })
 
   test('marks problems and layers that left the repo as deprecated', async ({ assert }) => {

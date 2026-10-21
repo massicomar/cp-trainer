@@ -3,9 +3,9 @@
 <select
   name="{{ $props.get('name') }}"
   class="input"
-  aria-label="{{ $props.get('label') ?? 'Technique' }}"
+  aria-label="{{ $props.get('label') ?? t('messages.contribute.fields.technique') }}"
 >
-  <option value="">Choose a technique…</option>
+  <option value="">{{ t('messages.contribute.fields.chooseTechnique') }}</option>
   @each(group in $props.get('groups'))
     <optgroup label="{{ group.subject.name }}">
       @each(technique in group.techniques)

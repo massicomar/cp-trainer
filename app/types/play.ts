@@ -4,12 +4,13 @@ export const TIERS: Tier[] = ['easy', 'medium', 'hard']
 
 /**
  * What a session draws from: any non-empty set of visible subjects and tiers,
- * with or without community-added problems.
+ * with or without community-added problems, with or without drills.
  */
 export interface Selection {
   subjects: string[]
   tiers: Tier[]
   includeCommunity: boolean
+  includeDrills: boolean
 }
 
 export type Outcome = 'correct' | 'overkill' | 'wrong' | 'gave_up' | 'skipped'

@@ -75,6 +75,7 @@
     "htmx.org": "^2.0.11",
     "katex": "^0.16.47",
     "luxon": "^3.7.2",
+    "node-html-parser": "^7.1.0",
     "reflect-metadata": "^0.2.2"
   },
   "hotHook": {

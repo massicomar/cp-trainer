@@ -28,6 +28,11 @@
         <button type="button" class="link-button" data-preset-subjects="{{ presets.all }}">
           {{ t('messages.setup.presets.all') }}
         </button>
+        @each(module in presets.modules)
+          <button type="button" class="link-button" data-preset-subjects="{{ module.subjects }}">
+            {{ t(`messages.setup.presets.${module.key}`) }}
+          </button>
+        @end
         @if(presets.dp)
           <button type="button" class="link-button" data-preset-subjects="{{ presets.dp }}">
             {{ t('messages.setup.presets.dp') }}
@@ -40,6 +45,7 @@
             data-preset-subjects="{{ presets.last.subjects.join(',') }}"
             data-preset-tiers="{{ presets.last.tiers.join(',') }}"
             data-preset-problems="{{ presets.last.includeCommunity ? 'all' : 'official' }}"
+            data-preset-drills="{{ presets.last.includeDrills ? 'on' : 'off' }}"
           >
             {{ t('messages.setup.presets.last') }}
           </button>
@@ -97,6 +103,18 @@
             <span>{{ t(`messages.setup.collections.${option}`) }}</span>
           </label>
         @end
+      </div>
+    </fieldset>
+
+    <fieldset class="setup__group">
+      <legend>{{ t('messages.setup.drills.legend') }}</legend>
+      <div class="chips">
+        {{-- Unticked, only "off" is sent; ticked, both (SessionSelection.normalize). --}}
+        <input type="hidden" name="drills" value="off" />
+        <label class="chip">
+          <input type="checkbox" name="drills" value="on" {{ current.includeDrills ? 'checked' : '' }} />
+          <span>{{ t('messages.setup.drills.include') }}</span>
+        </label>
       </div>
     </fieldset>
 

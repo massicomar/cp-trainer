@@ -8,19 +8,34 @@
       name="{{ name }}[correct]"
       {{ $props.get('correct') ? 'checked' : '' }}
     />
-    <span>correct</span>
+    <span>{{ t('messages.contribute.layer.correct') }}</span>
   </label>
   <input
     name="{{ name }}[text]"
     value="{{ option.text ?? '' }}"
     class="input"
-    placeholder="Option text"
+    placeholder="{{ t('messages.contribute.layer.optionText') }}"
   />
   <input
     name="{{ name }}[why]"
     value="{{ option.why ?? '' }}"
     class="input"
-    placeholder="Why it's wrong (shown when picked)"
+    placeholder="{{ t('messages.contribute.layer.why') }}"
   />
-  <button type="button" class="row__remove" data-remove-row aria-label="Remove option">×</button>
+  <input
+    name="{{ name }}[whyEs]"
+    value="{{ $props.get('whyEs') ?? '' }}"
+    class="input"
+    lang="es"
+    aria-label="{{ t('messages.contribute.layer.whyEsLabel') }}"
+    placeholder="{{ t('messages.contribute.layer.whyEs') }}"
+  />
+  <button
+    type="button"
+    class="row__remove"
+    data-remove-row
+    aria-label="{{ t('messages.contribute.layer.removeOption') }}"
+  >
+    ×
+  </button>
 </div>

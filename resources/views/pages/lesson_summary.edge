@@ -30,12 +30,20 @@
         </ul>
         <p class="result__observation">
           <strong>{{ t('messages.summary.keyObservation') }}</strong>
-          <span lang="en">{{{ math(item.problem.explanationMd) }}}</span>
+          <span lang="{{ localizedLang(item.problem.explanationEs) }}">
+            {{{
+              math(
+                localized(item.problem.explanationMd, item.problem.explanationEs),
+              )
+            }}}
+          </span>
         </p>
         @if(item.problem.traps.length)
-          <ul class="traps" lang="en">
-            @each(trap in item.problem.traps)
-              <li>{{{ math(trap) }}}</li>
+          <ul class="traps">
+            @each((trap, i) in item.problem.traps)
+              <li lang="{{ localizedLang(item.problem.trapsEs[i]) }}">
+                {{{ math(localized(trap, item.problem.trapsEs[i])) }}}
+              </li>
             @end
           </ul>
         @end

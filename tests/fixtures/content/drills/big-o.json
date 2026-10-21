@@ -1,0 +1,18 @@
+{
+  "$schema": "../schema/big-o.schema.json",
+  "schemaVersion": 1,
+  "opsPerSecond": 1e8,
+  "complexities": [
+    { "id": "1", "label": "O(1)", "maxN": 1e18 },
+    { "id": "log-n", "label": "O(\\log n)", "maxN": 1e18 },
+    { "id": "n", "label": "O(n)", "maxN": 1e7 },
+    { "id": "n-log-n", "label": "O(n \\log n)", "maxN": 1e6 },
+    { "id": "n2", "label": "O(n^2)", "maxN": 5000 },
+    { "id": "n2-log-n", "label": "O(n^2 \\log n)", "maxN": 2000 },
+    { "id": "n3", "label": "O(n^3)", "maxN": 500 },
+    { "id": "2n", "label": "O(2^n)", "maxN": 20 },
+    { "id": "n-2n", "label": "O(n \\cdot 2^n)", "maxN": 20 },
+    { "id": "n-fact", "label": "O(n!)", "maxN": 10 }
+  ],
+  "nValues": [8, 15, 100, 300, 1000, 3000, 1e5, 2e5, 1e6, 1e9, 1e12]
+}

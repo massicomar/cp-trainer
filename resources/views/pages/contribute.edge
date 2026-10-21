@@ -1,20 +1,39 @@
-@layouts.main({ title: 'Contribute a problem' })
-  <h1>Contribute a problem</h1>
+@layouts.main({ title: t('messages.contribute.pageTitle') })
+  <h1>{{ t('messages.contribute.heading') }}</h1>
   <p class="muted">
-    Fill in the form and the file updates as you type, checked the same way the content repo’s CI checks it. Then copy or download it into the content repo and open a pull request, or use "Open on GitHub". Nothing is saved on this site.
+    {{ t('messages.contribute.intro') }}
     <a href="{{ repoUrl }}/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">
-      How to write a good problem
+      {{ t('messages.contribute.guide') }}
     </a>
   </p>
+  <p><a href="/contribute">{{ t('messages.contribute.otherWays') }}</a></p>
+  @flashMessage('notice')
+    <p class="notice">{{ $message }}</p>
+  @end
+  @if(notice === 'fetched')
+    <p class="notice notice--ok">
+      {{ t('messages.contribute.notices.fetched', { judge }) }}
+    </p>
+  @elseif(notice === 'blocked')
+    <p class="notice notice--warn">
+      {{ t('messages.contribute.notices.blockedBefore', { judge }) }}
+      <code>node ace content:fetch-statements</code>
+      {{ t('messages.contribute.notices.blockedAfter') }}
+    </p>
+  @elseif(notice === 'failed')
+    <p class="notice notice--warn">
+      {{ t('messages.contribute.notices.failed', { judge }) }}
+    </p>
+  @end
   @if(notFound)
     <p class="notice notice--error">
-      There’s no problem with the id "{{ notFound }}". Starting a new one instead.
+      {{ t('messages.contribute.notices.notFound', { id: notFound }) }}
     </p>
   @end
   @if(editing)
     <p class="notice">
-      Editing
-      <strong>{{ editing }}</strong>. Ids are permanent: changing it makes a new problem.
+      {{ t('messages.contribute.notices.editing') }}
+      <strong>{{ editing }}</strong>. {{ t('messages.contribute.notices.editingNote') }}
     </p>
   @end
 
@@ -34,11 +53,11 @@
       <input type="hidden" name="editing" value="{{ editing ?? '' }}" />
 
       <fieldset class="builder__group">
-        <legend>The problem</legend>
+        <legend>{{ t('messages.contribute.groups.problem') }}</legend>
         <label class="field">
           <span>
-            Id
-            <small>&lt;source&gt;-&lt;code&gt;, lowercase, permanent: cses-1158, cf-166b</small>
+            {{ t('messages.contribute.fields.id') }}
+            <small>{{ t('messages.contribute.fields.idHint') }}</small>
           </span>
           <input
             name="id"
@@ -50,14 +69,14 @@
         </label>
         <label class="field">
           <span>
-            Original title
-            <small>hidden from players until they finish the problem</small>
+            {{ t('messages.contribute.fields.title') }}
+            <small>{{ t('messages.contribute.fields.titleHint') }}</small>
           </span>
           <input name="title" value="{{ problem.title }}" class="input" />
         </label>
         <div class="field-row">
           <label class="field">
-            <span>Judge</span>
+            <span>{{ t('messages.contribute.fields.judge') }}</span>
             <select name="source" class="input">
               @each(source in choices.sources)
                 <option value="{{ source }}" {{ source === problem.source ? 'selected' : '' }}>
@@ -67,7 +86,7 @@
             </select>
           </label>
           <label class="field field--wide">
-            <span>URL</span>
+            <span>{{ t('messages.contribute.fields.url') }}</span>
             <input
               name="url"
               value="{{ problem.url }}"
@@ -79,7 +98,7 @@
         </div>
         <div class="field-row">
           <label class="field">
-            <span>Tier</span>
+            <span>{{ t('messages.contribute.fields.tier') }}</span>
             <select name="difficulty[tier]" class="input">
               @each(tier in choices.tiers)
                 <option value="{{ tier }}" {{ tier === problem.difficulty.tier ? 'selected' : '' }}>
@@ -89,7 +108,7 @@
             </select>
           </label>
           <label class="field">
-            <span>Rating scale</span>
+            <span>{{ t('messages.contribute.fields.scale') }}</span>
             <select name="difficulty[scale]" class="input">
               @each(scale in choices.scales)
                 <option
@@ -102,13 +121,13 @@
             </select>
           </label>
           <label class="field">
-            <span>Rating <small>1700, E/M/H, 3.6…</small></span>
+            <span>{{ t('messages.contribute.fields.rating') }} <small>{{ t('messages.contribute.fields.ratingHint') }}</small></span>
             <input name="difficulty[value]" value="{{ problem.difficulty.value }}" class="input" />
           </label>
         </div>
         <div class="field-row">
           <label class="field">
-            <span>Status</span>
+            <span>{{ t('messages.contribute.fields.status') }}</span>
             <select name="status" class="input">
               @each(status in ['draft', 'ready'])
                 <option value="{{ status }}" {{ status === problem.status ? 'selected' : '' }}>
@@ -118,7 +137,7 @@
             </select>
           </label>
           <label class="field">
-            <span>Collection</span>
+            <span>{{ t('messages.contribute.fields.collection') }}</span>
             <select name="collection" class="input">
               @each(collection in ['community', 'official'])
                 <option
@@ -131,7 +150,7 @@
             </select>
           </label>
           <label class="field">
-            <span>Your GitHub username</span>
+            <span>{{ t('messages.contribute.fields.author') }}</span>
             <input
               name="author"
               value="{{ problem.author }}"
@@ -143,18 +162,16 @@
       </fieldset>
 
       <fieldset class="builder__group">
-        <legend>What the player reads</legend>
+        <legend>{{ t('messages.contribute.groups.reads') }}</legend>
         <label class="field">
           <span>
-            Statement
-            <small>
-              copied exactly from the judge, without the title, samples or limits. Keep its LaTeX ($N$, \leq).
-            </small>
+            {{ t('messages.contribute.fields.statement') }}
+            <small>{{ t('messages.contribute.fields.statementHint') }}</small>
           </span>
           <textarea name="summary" class="input" rows="10">{{ problem.summary }}</textarea>
         </label>
         <label class="field">
-          <span>Constraints <small>the main clue, so be exact</small></span>
+          <span>{{ t('messages.contribute.fields.constraints') }} <small>{{ t('messages.contribute.fields.constraintsHint') }}</small></span>
           <input
             name="constraints[text]"
             value="{{ problem.constraints.text }}"
@@ -168,17 +185,15 @@
             name="constraints[verified]"
             {{ problem.constraints.verified ? 'checked' : '' }}
           />
-          <span>I checked these limits on the judge page</span>
+          <span>{{ t('messages.contribute.fields.verified') }}</span>
         </label>
       </fieldset>
 
       <fieldset class="builder__group">
-        <legend>Answers</legend>
-        <p class="hint">
-          Exactly one intended subject and one intended technique inside it. Other correct approaches are accepted; ones that work but are heavier are overkill.
-        </p>
+        <legend>{{ t('messages.contribute.groups.answers') }}</legend>
+        <p class="hint">{{ t('messages.contribute.fields.answersHint') }}</p>
 
-        <p class="field-label">Subjects</p>
+        <p class="field-label">{{ t('messages.contribute.fields.subjects') }}</p>
         <div class="rows" data-rows="subjects" data-next="{{ problem.answers.subjects.length }}">
           @each((answer, i) in problem.answers.subjects)
             @!contribute.subjectRow({ index: i, answer, subjects, roles })
@@ -192,9 +207,9 @@
             roles,
           })
         </template>
-        <button type="button" class="link-button" data-add-row="subjects">+ Add subject</button>
+        <button type="button" class="link-button" data-add-row="subjects">{{ t('messages.contribute.fields.addSubject') }}</button>
 
-        <p class="field-label">Techniques</p>
+        <p class="field-label">{{ t('messages.contribute.fields.techniques') }}</p>
         <div
           class="rows"
           data-rows="techniques"
@@ -217,11 +232,13 @@
             roles,
           })
         </template>
-        <button type="button" class="link-button" data-add-row="techniques">+ Add technique</button>
+        <button type="button" class="link-button" data-add-row="techniques">
+          {{ t('messages.contribute.fields.addTechnique') }}
+        </button>
 
         <p class="field-label">
-          Also show in sessions of
-          <small>(distractors: a greedy problem that should appear in DP sessions)</small>
+          {{ t('messages.contribute.fields.appearsIn') }}
+          <small>{{ t('messages.contribute.fields.appearsInHint') }}</small>
         </p>
         <div class="chips">
           @each(subject in subjects)
@@ -245,10 +262,10 @@
       </fieldset>
 
       <fieldset class="builder__group">
-        <legend>Wrong options and pairs</legend>
+        <legend>{{ t('messages.contribute.groups.wrong') }}</legend>
         <p class="field-label">
-          Distractors
-          <small>techniques someone would plausibly but wrongly pick; any subject</small>
+          {{ t('messages.contribute.fields.distractors') }}
+          <small>{{ t('messages.contribute.fields.distractorsHint') }}</small>
         </p>
         <div
           class="rows"
@@ -261,9 +278,9 @@
                 name: 'distractors[]',
                 selected: distractor,
                 groups: techniqueGroups,
-                label: 'Distractor',
+                label: t('messages.contribute.fields.distractor'),
               })
-              <button type="button" class="row__remove" data-remove-row aria-label="Remove">
+              <button type="button" class="row__remove" data-remove-row aria-label="{{ t('messages.contribute.fields.remove') }}">
                 ×
               </button>
             </div>
@@ -275,16 +292,18 @@
               name: 'distractors[]',
               selected: '',
               groups: techniqueGroups,
-              label: 'Distractor',
+              label: t('messages.contribute.fields.distractor'),
             })
-            <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+            <button type="button" class="row__remove" data-remove-row aria-label="{{ t('messages.contribute.fields.remove') }}">×</button>
           </div>
         </template>
         <button type="button" class="link-button" data-add-row="distractors">
-          + Add distractor
+          {{ t('messages.contribute.fields.addDistractor') }}
         </button>
 
-        <p class="field-label">Pair with <small>same story, different constraints</small></p>
+        <p class="field-label">
+          {{ t('messages.contribute.fields.pairWith') }} <small>{{ t('messages.contribute.fields.pairWithHint') }}</small>
+        </p>
         <datalist id="problem-ids">
           @each(id in problemIds)
             <option value="{{ id }}"></option>
@@ -298,9 +317,9 @@
                 value="{{ id }}"
                 class="input"
                 list="problem-ids"
-                aria-label="Problem id"
+                aria-label="{{ t('messages.contribute.start.problemId') }}"
               />
-              <button type="button" class="row__remove" data-remove-row aria-label="Remove">
+              <button type="button" class="row__remove" data-remove-row aria-label="{{ t('messages.contribute.fields.remove') }}">
                 ×
               </button>
             </div>
@@ -308,52 +327,53 @@
         </div>
         <template data-row-template="pairWith" data-placeholder="__i__">
           <div class="row" data-row>
-            <input name="pairWith[]" class="input" list="problem-ids" aria-label="Problem id" />
-            <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
+            <input name="pairWith[]" class="input" list="problem-ids" aria-label="{{ t('messages.contribute.start.problemId') }}" />
+            <button type="button" class="row__remove" data-remove-row aria-label="{{ t('messages.contribute.fields.remove') }}">×</button>
           </div>
         </template>
-        <button type="button" class="link-button" data-add-row="pairWith">+ Add pair</button>
+        <button type="button" class="link-button" data-add-row="pairWith">{{ t('messages.contribute.fields.addPair') }}</button>
       </fieldset>
 
       <fieldset class="builder__group">
-        <legend>After answering</legend>
+        <legend>{{ t('messages.contribute.groups.after') }}</legend>
         <label class="field">
           <span>
-            Explanation
-            <small>
-              why the intended technique fits; point at the constraint that gives it away
-            </small>
+            {{ t('messages.contribute.fields.explanation') }}
+            <small>{{ t('messages.contribute.fields.explanationHint') }}</small>
           </span>
           <textarea name="explanation" class="input" rows="3">{{ problem.explanation }}</textarea>
         </label>
-        <p class="field-label">Traps <small>common bugs or wrong ideas</small></p>
-        <div class="rows" data-rows="traps" data-next="{{ (problem.traps ?? []).length }}">
-          @each(trap in problem.traps)
-            <div class="row" data-row>
-              <input name="traps[]" value="{{ trap }}" class="input" aria-label="Trap" />
-              <button type="button" class="row__remove" data-remove-row aria-label="Remove">
-                ×
-              </button>
-            </div>
+        <label class="field">
+          <span>
+            {{ t('messages.contribute.fields.explanationEs') }} <small>{{ t('messages.contribute.fields.explanationEsHint') }}</small>
+          </span>
+          <textarea
+            name="explanationEs"
+            class="input"
+            rows="3"
+            lang="es"
+          >{{ problem.es.explanation }}</textarea>
+        </label>
+        <p class="field-label">
+          {{ t('messages.contribute.fields.traps') }} <small>{{ t('messages.contribute.fields.trapsHint') }}</small>
+        </p>
+        <div class="rows" data-rows="traps" data-next="{{ problem.traps.length }}">
+          @each((trap, i) in problem.traps)
+            @!contribute.trapRow({ index: i, trap, trapEs: problem.es.traps[i] })
           @end
         </div>
         <template data-row-template="traps" data-placeholder="__i__">
-          <div class="row" data-row>
-            <input name="traps[]" class="input" aria-label="Trap" />
-            <button type="button" class="row__remove" data-remove-row aria-label="Remove">×</button>
-          </div>
+          @!contribute.trapRow({ index: '__i__', trap: '', trapEs: '' })
         </template>
-        <button type="button" class="link-button" data-add-row="traps">+ Add trap</button>
+        <button type="button" class="link-button" data-add-row="traps">{{ t('messages.contribute.fields.addTrap') }}</button>
       </fieldset>
 
       <fieldset class="builder__group">
-        <legend>Extra layers</legend>
-        <p class="hint">
-          DP problems get a state layer and a transition layer. Other kinds are optional.
-        </p>
+        <legend>{{ t('messages.contribute.groups.layers') }}</legend>
+        <p class="hint">{{ t('messages.contribute.fields.layersHint') }}</p>
         <div class="rows" data-rows="layers" data-next="{{ (problem.extraLayers ?? []).length }}">
           @each((layer, i) in problem.extraLayers)
-            @!contribute.layer({ index: i, layer, kinds: choices.kinds })
+            @!contribute.layer({ index: i, layer, es: problem.es.layers[layer.key], kinds: choices.kinds })
           @end
         </div>
         <template data-row-template="layers" data-placeholder="__i__">
@@ -366,7 +386,7 @@
             data-add-row="layers"
             data-preset="{{ presets.dpState }}"
           >
-            + DP state layer
+            {{ t('messages.contribute.fields.addDpState') }}
           </button>
           <button
             type="button"
@@ -374,25 +394,27 @@
             data-add-row="layers"
             data-preset="{{ presets.dpTransition }}"
           >
-            + DP transition layer
+            {{ t('messages.contribute.fields.addDpTransition') }}
           </button>
-          <button type="button" class="link-button" data-add-row="layers">+ Other layer</button>
+          <button type="button" class="link-button" data-add-row="layers">
+            {{ t('messages.contribute.fields.addOtherLayer') }}
+          </button>
         </div>
       </fieldset>
 
       <fieldset class="builder__group">
-        <legend>Other</legend>
+        <legend>{{ t('messages.contribute.groups.other') }}</legend>
         <label class="field">
-          <span>Notes for authors <small>never shown to players</small></span>
+          <span>{{ t('messages.contribute.fields.notes') }} <small>{{ t('messages.contribute.fields.notesHint') }}</small></span>
           <textarea name="notes" class="input" rows="2">{{ problem.notes ?? '' }}</textarea>
         </label>
         <label class="check">
           <input type="checkbox" name="deprecated" {{ problem.deprecated ? 'checked' : '' }} />
-          <span>Retired (deprecated). Never delete a problem file; retire it instead.</span>
+          <span>{{ t('messages.contribute.fields.deprecated') }}</span>
         </label>
       </fieldset>
 
-      <button type="submit" class="button">Update preview</button>
+      <button type="submit" class="button">{{ t('messages.contribute.fields.update') }}</button>
     </form>
     @include('partials/contribute_preview')
   </div>

@@ -30,6 +30,7 @@ router
 
 router.get('/contribute', [controllers.Contribute, 'show']).as('contribute.show')
 router.post('/contribute', [controllers.Contribute, 'preview']).as('contribute.preview')
+router.post('/contribute/import', [controllers.Contribute, 'import']).as('contribute.import')
 
 router.post('/preferences', [controllers.Preferences, 'update']).as('preferences.update')
 

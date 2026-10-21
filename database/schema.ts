@@ -30,13 +30,59 @@ export class AttemptSchema extends BaseModel {
   declare problemId: string
 }
 
+export class DrillAttemptSchema extends BaseModel {
+  static $columns = ['answer', 'chosen', 'createdAt', 'drillItemId', 'id', 'itemIndex', 'kind', 'lessonId', 'msTaken', 'outcome', 'params', 'playerId'] as const
+  $columns = DrillAttemptSchema.$columns
+  @column()
+  declare answer: string
+  @column()
+  declare chosen: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare drillItemId: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare itemIndex: number
+  @column()
+  declare kind: string
+  @column()
+  declare lessonId: number
+  @column()
+  declare msTaken: number | null
+  @column()
+  declare outcome: string
+  @column()
+  declare params: any
+  @column()
+  declare playerId: string
+}
+
+export class DrillItemSchema extends BaseModel {
+  static $columns = ['data', 'deprecated', 'id', 'kind', 'subjectId'] as const
+  $columns = DrillItemSchema.$columns
+  @column()
+  declare data: any
+  @column()
+  declare deprecated: boolean
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare kind: string
+  @column()
+  declare subjectId: string | null
+}
+
 export class LayerSchema extends BaseModel {
-  static $columns = ['accepted', 'deprecated', 'explanationMd', 'id', 'kind', 'options', 'position', 'problemId', 'prompt'] as const
+  static $columns = ['accepted', 'deprecated', 'explanationEs', 'explanationMd', 'id', 'kind', 'options', 'position', 'problemId', 'prompt'] as const
   $columns = LayerSchema.$columns
   @column()
   declare accepted: any
   @column()
   declare deprecated: boolean
+  @column()
+  declare explanationEs: string | null
   @column()
   declare explanationMd: string | null
   @column({ isPrimary: true })
@@ -54,20 +100,24 @@ export class LayerSchema extends BaseModel {
 }
 
 export class LessonSchema extends BaseModel {
-  static $columns = ['createdAt', 'cursorLayer', 'cursorProblem', 'finishedAt', 'id', 'includeCommunity', 'layerStartedAt', 'playerId', 'problemIds', 'status', 'subjectIds', 'tiers'] as const
+  static $columns = ['createdAt', 'cursorItem', 'cursorLayer', 'finishedAt', 'id', 'includeCommunity', 'includeDrills', 'items', 'layerStartedAt', 'playerId', 'problemIds', 'status', 'subjectIds', 'tiers'] as const
   $columns = LessonSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
-  declare cursorLayer: number
+  declare cursorItem: number
   @column()
-  declare cursorProblem: number
+  declare cursorLayer: number
   @column.dateTime()
   declare finishedAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
   declare includeCommunity: boolean
+  @column()
+  declare includeDrills: boolean
+  @column()
+  declare items: any
   @column.dateTime()
   declare layerStartedAt: DateTime
   @column()
@@ -122,7 +172,7 @@ export class ProblemSubjectSchema extends BaseModel {
 }
 
 export class ProblemSchema extends BaseModel {
-  static $columns = ['author', 'collection', 'constraintsText', 'constraintsVerified', 'contentHash', 'deprecated', 'difficultyScale', 'difficultyValue', 'distractors', 'explanationMd', 'id', 'pairWith', 'source', 'sourcePath', 'status', 'summaryMd', 'syncedAt', 'tier', 'title', 'traps', 'url'] as const
+  static $columns = ['author', 'collection', 'constraintsText', 'constraintsVerified', 'contentHash', 'deprecated', 'difficultyScale', 'difficultyValue', 'distractors', 'explanationEs', 'explanationMd', 'id', 'pairWith', 'source', 'sourcePath', 'status', 'summaryMd', 'syncedAt', 'tier', 'title', 'traps', 'trapsEs', 'url'] as const
   $columns = ProblemSchema.$columns
   @column()
   declare author: string
@@ -142,6 +192,8 @@ export class ProblemSchema extends BaseModel {
   declare difficultyValue: string
   @column()
   declare distractors: any
+  @column()
+  declare explanationEs: string | null
   @column()
   declare explanationMd: string
   @column({ isPrimary: true })
@@ -164,6 +216,8 @@ export class ProblemSchema extends BaseModel {
   declare title: string
   @column()
   declare traps: any
+  @column()
+  declare trapsEs: any
   @column()
   declare url: string
 }

@@ -17,6 +17,7 @@ export type ScannedRoutes = {
     'lessons.report': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'contribute.show': { paramsTuple?: []; params?: {} }
     'contribute.preview': { paramsTuple?: []; params?: {} }
+    'contribute.import': { paramsTuple?: []; params?: {} }
     'preferences.update': { paramsTuple?: []; params?: {} }
     'health': { paramsTuple?: []; params?: {} }
   }
@@ -46,6 +47,7 @@ export type ScannedRoutes = {
     'lessons.continue': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'lessons.next': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'contribute.preview': { paramsTuple?: []; params?: {} }
+    'contribute.import': { paramsTuple?: []; params?: {} }
     'preferences.update': { paramsTuple?: []; params?: {} }
   }
 }

@@ -5,6 +5,15 @@ import SessionSelection from '#services/session_selection'
 import { TIERS, type Selection } from '#types/play'
 
 /**
+ * The course's two modules, as setup presets (subjects that aren't in the
+ * taxonomy anymore are left out).
+ */
+export const MODULES = [
+  { key: 'module1', subjects: ['dp', 'graphs', 'geometry'] },
+  { key: 'module2', subjects: ['number-theory', 'bsearch-dnc', 'segtree'] },
+]
+
+/**
  * The session setup page and its live "N problems match" line.
  */
 @inject()
@@ -27,7 +36,7 @@ export default class HomeController {
       ? fromQuery
       : saved && this.selection.isComplete(saved)
         ? saved
-        : { subjects: visibleIds, tiers: TIERS, includeCommunity: true }
+        : { subjects: visibleIds, tiers: TIERS, includeCommunity: true, includeDrills: true }
 
     const [count, perSubject] = await Promise.all([
       this.selection.count(current),
@@ -45,6 +54,10 @@ export default class HomeController {
       presets: {
         all: visibleIds.join(','),
         dp: visibleIds.includes('dp') ? 'dp' : null,
+        modules: MODULES.map((m) => ({
+          key: m.key,
+          subjects: m.subjects.filter((id) => visibleIds.includes(id)).join(','),
+        })).filter((m) => m.subjects),
         last: saved && this.selection.isComplete(saved) ? saved : null,
       },
     })

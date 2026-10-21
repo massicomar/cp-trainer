@@ -20,6 +20,8 @@
     "problems": "Problemas",
     "presets": {
       "all": "Todas las categorías",
+      "module1": "Módulo 1",
+      "module2": "Módulo 2",
       "dp": "Solo DP",
       "last": "Igual que la última vez"
     },
@@ -40,7 +42,11 @@
       "short": "{count, plural, one {# problema coincide} other {# problemas coinciden}} · la lección tendrá menos de {size}",
       "full": "{count} problemas coinciden · {size} por lección"
     },
-    "start": "Empezar lección"
+    "start": "Empezar lección",
+    "drills": {
+      "legend": "Preguntas rápidas",
+      "include": "Preguntas rápidas de Big O entre problemas"
+    }
   },
   "tiers": {
     "easy": "Fácil",
@@ -74,12 +80,160 @@
     "seeResults": "Ver resultados",
     "report": "Reportar un problema"
   },
+  "drills": {
+    "label": "Pregunta rápida",
+    "skip": "Saltar pregunta",
+    "fitsYes": "Entra",
+    "fitsNo": "No entra",
+    "prompts": {
+      "max-big-o": "Con {bound}, ¿cuál es la complejidad más grande que entra en aproximadamente un segundo?",
+      "algorithm-big-o": "¿Cuál es la complejidad temporal de {name}?",
+      "max-n": "Con {complexity}, ¿hasta qué n aproximadamente entra en un segundo?",
+      "fits": "{complexity} con {bound}: ¿entra en un segundo?"
+    },
+    "explain": {
+      "budget": "En un segundo entran unas {ops} operaciones simples.",
+      "fits": "Con {bound}, {complexity} son {calc} operaciones, así que entra.",
+      "aboutTheLimit": "Con {bound}, {complexity} son {calc} operaciones, más o menos el límite.",
+      "tooMany": "Con {bound}, {complexity} serían {calc} operaciones, muchísimas más, así que no entra."
+    }
+  },
   "summary": {
     "pageTitle": "Resultados de la lección",
     "heading": "Resultados de la lección",
     "keyObservation": "Observación clave:",
     "next": "Siguiente lección",
     "change": "Cambiar selección"
+  },
+  "contribute": {
+    "pageTitle": "Contribuir un problema",
+    "heading": "Contribuir un problema",
+    "start": {
+      "intro": "Obtienes un archivo de problema para agregar al repo de contenido con un pull request. Nada se guarda en este sitio.",
+      "fromLink": "Desde un enlace",
+      "fromLinkHint": "Los enlaces de CSES, AtCoder y Kattis vuelven con el enunciado, el título, las restricciones y la dificultad completos. Codeforces y SPOJ bloquean la descarga automática, así que esos abren el formulario solo con el id, el juez y el enlace.",
+      "link": "Enlace del problema",
+      "import": "Importar",
+      "manual": "Manual",
+      "manualHint": "Un formulario vacío; completas todo, incluido el enunciado.",
+      "manualButton": "Empezar con un formulario vacío",
+      "edit": "Editar un problema del banco",
+      "problemId": "Id del problema",
+      "editButton": "Editar"
+    },
+    "intro": "Completa el formulario y el archivo se actualiza mientras escribes, revisado igual que lo revisa el CI del repo de contenido. Después cópialo o descárgalo en el repo de contenido y abre un pull request, o usa “Abrir en GitHub”. Nada se guarda en este sitio.",
+    "guide": "Cómo escribir un buen problema",
+    "otherWays": "← Otras formas de empezar",
+    "notices": {
+      "fetched": "Importado de {judge}: el enunciado, el título, las restricciones y la dificultad (si el juez la publica) ya están completos. Revísalos y después agrega las respuestas y las explicaciones.",
+      "blockedBefore": "{judge} bloquea la descarga automática, así que solo se completaron el id, el juez y el enlace. Pega el enunciado tú mismo o usa",
+      "blockedAfter": "cuando el archivo esté en el repo.",
+      "failed": "No se pudo leer el problema de {judge} ahora, así que solo se completaron el id, el juez y el enlace.",
+      "notFound": "No hay ningún problema con el id “{id}”. Empezamos uno nuevo.",
+      "editing": "Editando",
+      "editingNote": "Los ids son permanentes: si lo cambias, es un problema nuevo.",
+      "invalidLink": "Ese no es un enlace a un problema de CSES, AtCoder, Kattis, Codeforces o SPOJ.",
+      "existing": "{id} ya está en el banco, así que aquí lo tienes para editar."
+    },
+    "groups": {
+      "problem": "El problema",
+      "reads": "Lo que lee el jugador",
+      "answers": "Respuestas",
+      "wrong": "Opciones incorrectas y pares",
+      "after": "Después de responder",
+      "layers": "Capas extra",
+      "other": "Otros"
+    },
+    "fields": {
+      "id": "Id",
+      "idHint": "<juez>-<código>, en minúsculas, permanente: cses-1158, cf-166b",
+      "title": "Título original",
+      "titleHint": "oculto para los jugadores hasta que terminan el problema",
+      "judge": "Juez",
+      "url": "URL",
+      "tier": "Dificultad",
+      "scale": "Escala del rating",
+      "rating": "Rating",
+      "ratingHint": "1700, E/M/H, 3.6…",
+      "status": "Estado",
+      "collection": "Colección",
+      "author": "Tu usuario de GitHub",
+      "statement": "Enunciado",
+      "statementHint": "copiado exactamente del juez, sin el título, los ejemplos ni los límites. Conserva su LaTeX ($N$, \\leq).",
+      "constraints": "Restricciones",
+      "constraintsHint": "la pista principal, así que sé exacto",
+      "verified": "Revisé estos límites en la página del juez",
+      "answersHint": "Exactamente una categoría intended y una técnica intended dentro de ella. Los otros enfoques correctos son accepted; los que funcionan pero son más pesados, overkill.",
+      "subjects": "Categorías",
+      "addSubject": "+ Agregar categoría",
+      "techniques": "Técnicas",
+      "addTechnique": "+ Agregar técnica",
+      "appearsIn": "Mostrar también en sesiones de",
+      "appearsInHint": "(distractores: un problema greedy que debería aparecer en sesiones de DP)",
+      "distractors": "Distractores",
+      "distractorsHint": "técnicas que alguien elegiría de forma plausible pero equivocada; de cualquier categoría",
+      "distractor": "Distractor",
+      "addDistractor": "+ Agregar distractor",
+      "pairWith": "Emparejar con",
+      "pairWithHint": "misma historia, otras restricciones",
+      "addPair": "+ Agregar par",
+      "explanation": "Explicación",
+      "explanationHint": "por qué encaja la técnica intended; señala la restricción que la delata",
+      "explanationEs": "Explicación en español",
+      "explanationEsHint": "opcional; la ven los jugadores con la interfaz en español",
+      "traps": "Trampas",
+      "trapsHint": "bugs comunes o ideas equivocadas; la versión en español es opcional",
+      "trap": "Trampa",
+      "trapEs": "Trampa en español",
+      "trapEsPlaceholder": "En español (opcional)",
+      "addTrap": "+ Agregar trampa",
+      "layersHint": "Los problemas de DP llevan una capa de estado y una de transición. Los otros tipos son opcionales.",
+      "addDpState": "+ Capa de estado de DP",
+      "addDpTransition": "+ Capa de transición de DP",
+      "addOtherLayer": "+ Otra capa",
+      "notes": "Notas para autores",
+      "notesHint": "nunca se muestran a los jugadores",
+      "deprecated": "Retirado (deprecated). Nunca borres el archivo de un problema; retíralo.",
+      "update": "Actualizar la vista previa",
+      "remove": "Quitar",
+      "chooseSubject": "Elige una categoría…",
+      "chooseTechnique": "Elige una técnica…",
+      "subject": "Categoría",
+      "technique": "Técnica",
+      "role": "Rol"
+    },
+    "layer": {
+      "key": "Clave",
+      "kind": "Tipo",
+      "remove": "Quitar capa",
+      "prompt": "Pregunta",
+      "optionsHint": "Las opciones son a, b, c… en este orden. Marca las correctas. El “por qué” en español es opcional.",
+      "addOption": "+ Agregar opción",
+      "explanation": "Explicación (se muestra después de responder)",
+      "explanationEs": "Explicación en español",
+      "optional": "opcional",
+      "correct": "correcta",
+      "optionText": "Texto de la opción",
+      "why": "Por qué está mal (se muestra al elegirla)",
+      "whyEs": "Por qué, en español (opcional)",
+      "whyEsLabel": "Por qué, en español",
+      "removeOption": "Quitar opción"
+    },
+    "preview": {
+      "heading": "El archivo",
+      "saveAsBefore": "Guárdalo como",
+      "saveAsAfter": "en el repo de contenido.",
+      "noPath": "La ruta aparece cuando hay un id y una categoría intended.",
+      "notStarted": "Empieza con el id, el título y el enunciado; aquí aparece lo que el CI rechazaría.",
+      "rejected": "El CI rechazaría este archivo:",
+      "ok": "Todo bien: pasa los mismos chequeos que el CI del repo de contenido.",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "download": "Descargar",
+      "openGithub": "Abrir en GitHub",
+      "editGithub": "Editar en GitHub (pégalo ahí)",
+      "statement": "El enunciado como lo ven los jugadores"
+    }
   },
   "kinds": {
     "subject": "Categoría",
@@ -89,7 +243,11 @@
     "complexity": "Complejidad",
     "observation": "Observación",
     "node-stores": "Contenido del nodo",
-    "trap": "Trampa"
+    "trap": "Trampa",
+    "max-big-o": "Complejidad máxima para una cota",
+    "algorithm-big-o": "Complejidad de un algoritmo",
+    "max-n": "n máximo para una complejidad",
+    "fits": "Entra o no"
   },
   "outcomes": {
     "correct": "bien",

@@ -4,6 +4,7 @@ import contentConfig from '#config/content'
 import Problem from '#models/problem'
 import Catalog from '#services/catalog'
 import ProblemDraft from '#services/problem_draft'
+import StatementImport from '#services/statement_import'
 import type { ProblemFile } from '#types/content'
 
 /** Standard prompts for the DP layer presets on the contribute page. */
@@ -16,28 +17,70 @@ const LAYER_PRESETS = {
   },
 }
 
+/** What a link import managed to fill in, shown above the form. */
+type ImportNotice = 'fetched' | 'blocked' | 'failed'
+
 /**
  * /contribute: a form that writes a problem file for the content repo.
- * English only, like the content it produces (D-048).
+ * The page follows the UI language; the file is English, with optional
+ * Spanish versions of the texts that explain (D-064, D-084). Nothing is stored on
+ * the server; the file reaches the content repo through a GitHub PR.
  */
 @inject()
 export default class ContributeController {
   constructor(
     protected drafts: ProblemDraft,
-    protected catalog: Catalog
+    protected catalog: Catalog,
+    protected importer: StatementImport
   ) {}
 
   /**
-   * Blank form, or `?from=<id>` to start from an existing problem.
+   * The start screen ("From a link" / "Manual" / edit an existing problem),
+   * `?new=1` for a blank form, or `?from=<id>` to edit an existing problem.
    */
   async show({ request, view }: HttpContext) {
     const from = request.input('from')
     const fromId = typeof from === 'string' ? from.trim() : ''
+    if (!fromId && !request.input('new')) {
+      const problems = await Problem.query().select('id').orderBy('id')
+      return view.render('pages/contribute_start', { problemIds: problems.map((p) => p.id) })
+    }
     const loaded = fromId ? await this.drafts.load(fromId) : null
     const problem = loaded ?? this.drafts.blank()
     return view.render(
       'pages/contribute',
-      await this.page(problem, loaded ? fromId : null, fromId && !loaded ? fromId : null)
+      await this.page(problem, {
+        editing: loaded ? fromId : null,
+        notFound: fromId && !loaded ? fromId : null,
+      })
+    )
+  }
+
+  /**
+   * POST /contribute/import { url }: the form prefilled from the judge, the
+   * manual form for Codeforces / SPOJ, or edit mode if the problem exists.
+   */
+  async import({ request, response, session, view, i18n }: HttpContext) {
+    const url = request.input('url')
+    const result = await this.importer.import(typeof url === 'string' ? url : '')
+
+    if (result.kind === 'invalid') {
+      session.flash('error', i18n.t('messages.contribute.notices.invalidLink'))
+      return response.redirect('/contribute')
+    }
+    if (result.kind === 'existing') {
+      session.flash('notice', i18n.t('messages.contribute.notices.existing', { id: result.id }))
+      return response.redirect(`/contribute?from=${encodeURIComponent(result.id)}`)
+    }
+    const notice: ImportNotice = result.kind === 'fetched' ? 'fetched' : result.reason
+    return view.render(
+      'pages/contribute',
+      await this.page(result.draft, {
+        editing: null,
+        notFound: null,
+        notice,
+        judge: result.draft.source,
+      })
     )
   }
 
@@ -53,17 +96,29 @@ export default class ContributeController {
         preview: await this.drafts.preview(problem, editing || null),
       })
     }
-    return view.render('pages/contribute', await this.page(problem, editing || null, null))
+    return view.render(
+      'pages/contribute',
+      await this.page(problem, { editing: editing || null, notFound: null })
+    )
   }
 
-  protected async page(problem: ProblemFile, editing: string | null, notFound: string | null) {
+  protected async page(
+    problem: ProblemFile,
+    state: {
+      editing: string | null
+      notFound: string | null
+      notice?: ImportNotice
+      judge?: string
+    }
+  ) {
     const [taxonomy, problems, choices, preview] = await Promise.all([
       this.catalog.taxonomy(),
       Problem.query().select('id').orderBy('id'),
       this.drafts.choices(),
-      this.drafts.preview(problem, editing),
+      this.drafts.preview(problem, state.editing),
     ])
     return {
+      ...state,
       // Optional lists always present, so the template can loop over them.
       problem: {
         ...problem,
@@ -72,9 +127,12 @@ export default class ContributeController {
         traps: problem.traps ?? [],
         pairWith: problem.pairWith ?? [],
         extraLayers: problem.extraLayers ?? [],
+        es: {
+          explanation: problem.es?.explanation ?? '',
+          traps: problem.es?.traps ?? [],
+          layers: problem.es?.layers ?? {},
+        },
       },
-      editing,
-      notFound,
       preview,
       choices,
       subjects: taxonomy.subjects,

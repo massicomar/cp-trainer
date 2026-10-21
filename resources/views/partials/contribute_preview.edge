@@ -1,18 +1,20 @@
 {{-- The generated file and its checks. HTMX swaps this after every form change. --}}
 <aside id="preview" class="builder__preview" aria-live="polite">
-  <h2>The file</h2>
+  <h2>{{ t('messages.contribute.preview.heading') }}</h2>
   @if(preview.path)
-    <p>Save it as <code>{{ preview.path }}</code> in the content repo.</p>
+    <p>
+      {{ t('messages.contribute.preview.saveAsBefore') }}
+      <code>{{ preview.path }}</code>
+      {{ t('messages.contribute.preview.saveAsAfter') }}
+    </p>
   @else
-    <p class="muted">The path appears once there's an id and an intended subject.</p>
+    <p class="muted">{{ t('messages.contribute.preview.noPath') }}</p>
   @end
   @if(!preview.started)
-    <p class="muted">
-      Start with the id, title and summary; problems CI would reject show up here.
-    </p>
+    <p class="muted">{{ t('messages.contribute.preview.notStarted') }}</p>
   @elseif(preview.check.errors.length)
     <div class="notice notice--error">
-      <strong>CI would reject this file:</strong>
+      <strong>{{ t('messages.contribute.preview.rejected') }}</strong>
       <ul>
         @each(message in preview.check.errors)
           <li>{{ message }}</li>
@@ -20,9 +22,7 @@
       </ul>
     </div>
   @else
-    <p class="notice notice--ok">
-      Looks good: this passes the same checks as the content repo’s CI.
-    </p>
+    <p class="notice notice--ok">{{ t('messages.contribute.preview.ok') }}</p>
   @end
   @if(preview.started && preview.check.warnings.length)
     <div class="notice notice--warn">
@@ -35,22 +35,29 @@
   @end
 
   <div class="actions">
-    <button type="button" class="button" data-copy="#preview-json">Copy</button>
+    <button
+      type="button"
+      class="button"
+      data-copy="#preview-json"
+      data-copied="{{ t('messages.contribute.preview.copied') }}"
+    >
+      {{ t('messages.contribute.preview.copy') }}
+    </button>
     <a class="button" href="{{ preview.downloadHref }}" download="{{ preview.downloadName }}">
-      Download
+      {{ t('messages.contribute.preview.download') }}
     </a>
     @if(preview.github)
       <a class="button" href="{{ preview.github.url }}" target="_blank" rel="noopener">
         {{
           preview.github.prefilled
-            ? 'Open on GitHub'
-            : 'Edit on GitHub (paste it there)'
+            ? t('messages.contribute.preview.openGithub')
+            : t('messages.contribute.preview.editGithub')
         }}
       </a>
     @end
   </div>
   @if(preview.statement)
-    <h3>The statement as players see it</h3>
+    <h3>{{ t('messages.contribute.preview.statement') }}</h3>
     <div class="problem">
       <p class="problem__summary" lang="en">{{{ math(preview.statement) }}}</p>
     </div>

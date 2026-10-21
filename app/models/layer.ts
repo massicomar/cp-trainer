@@ -1,7 +1,7 @@
 import { LayerSchema } from '#database/schema'
 import { booleanColumn, jsonColumn } from '#database/column_types'
 import Problem from '#models/problem'
-import type { LayerOption } from '#types/content'
+import type { StoredLayerOption } from '#types/content'
 import { belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
@@ -18,7 +18,7 @@ export default class Layer extends LayerSchema {
   static selfAssignPrimaryKey = true
 
   @column(jsonColumn)
-  declare options: LayerOption[] | null
+  declare options: StoredLayerOption[] | null
 
   @column(jsonColumn)
   declare accepted: string[]

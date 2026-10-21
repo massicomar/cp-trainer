@@ -101,6 +101,43 @@ test.group('ProblemDraft', (group) => {
     ])
   })
 
+  test('collects the Spanish fields into an es block at the end, or none', ({ assert }) => {
+    const base = formFields(newProblem())
+    assert.notProperty(drafts.fromForm(base), 'es')
+
+    const problem = drafts.fromForm({
+      ...base,
+      explanationEs: ' Porque sí. ',
+      traps: [
+        { en: 'First trap', es: '' },
+        { en: '', es: 'sin inglés: se descarta' },
+        { en: 'Second trap', es: 'Segunda' },
+      ],
+      layers: [
+        {
+          key: 'dp-state',
+          kind: 'dp-state',
+          prompt: 'State?',
+          explanation: 'Because.',
+          explanationEs: 'Porque.',
+          options: [
+            { text: 'first', whyEs: 'no' },
+            { text: 'second', correct: 'on' },
+          ],
+        },
+        { key: 'other', kind: 'custom', prompt: 'P', explanation: 'E', options: [{ text: 'x' }] },
+      ],
+    })
+
+    assert.deepEqual(problem.traps, ['First trap', 'Second trap'])
+    assert.deepEqual(problem.es, {
+      explanation: 'Porque sí.',
+      traps: ['', 'Segunda'],
+      layers: { 'dp-state': { explanation: 'Porque.', why: { a: 'no' } } },
+    })
+    assert.equal(Object.keys(problem).at(-1), 'es')
+  })
+
   test('drops empty rows and duplicate list entries', ({ assert }) => {
     const problem = drafts.fromForm({
       ...formFields(newProblem()),

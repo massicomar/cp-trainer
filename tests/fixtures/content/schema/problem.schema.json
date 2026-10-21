@@ -121,6 +121,37 @@
     "deprecated": {
       "description": "Retire a problem by setting this to true. Never delete the file.",
       "type": "boolean"
+    },
+    "es": {
+      "description": "Optional Spanish versions of the texts that explain (shown when the UI is in Spanish). Anything missing falls back to the English text, field by field. Statements, prompts and option texts stay English.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explanation": { "type": "string", "minLength": 1 },
+        "traps": {
+          "description": "Same order and number of entries as the English traps. An empty string falls back to the English entry.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "layers": {
+          "description": "Keyed by the key of an entry in extraLayers.",
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "explanation": { "type": "string", "minLength": 1 },
+              "why": {
+                "description": "Keyed by option id.",
+                "type": "object",
+                "propertyNames": { "pattern": "^[a-z]$" },
+                "additionalProperties": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "if": { "properties": { "status": { "const": "ready" } } },

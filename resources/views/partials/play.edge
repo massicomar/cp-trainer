@@ -2,174 +2,27 @@
   The whole lesson area. Every form posts normally (works without JS) and
   HTMX swaps this element with the server's response.
 --}}
-@let(base = `/lessons/${play.lesson.id}`)
-@let(generated = ['subject', 'technique'].includes(play.question.layer.kind))
-@let(prompt = generated
-  ? t(`messages.play.prompts.${play.question.layer.kind}`)
-  : play.question.prompt)
-@let(problemOf = t('messages.play.problemOf', {
-  number: play.problemNumber,
-  count: play.problemCount,
-}))
+@let(meta =
+  play.type === 'drill'
+    ? t('messages.drills.label')
+    : t('messages.play.problemOf', { number: play.problemNumber, count: play.problemCount }))
 <div id="play" class="play">
   <header class="play__top">
-    <ol class="progress" aria-label="{{ problemOf }}">
-      @each(state in play.progress)
-        <li class="progress__step progress__step--{{ state }}"></li>
+    <ol class="progress" aria-label="{{ meta }}">
+      @each(step in play.progress)
+        <li
+          class="progress__step progress__step--{{ step.state }} {{ step.drill ? 'progress__step--drill' : '' }}"
+        ></li>
       @end
     </ol>
     <p class="play__meta">
-      {{ problemOf }}
+      {{ meta }}
       <span class="pill">{{ play.subjectNames.join(' · ') }}</span>
     </p>
   </header>
-
-  <article class="problem">
-    @if(play.problem.status === 'draft')
-      <span class="badge">{{ t('messages.play.draft') }}</span>
-    @end
-    @if(play.problem.summaryMd)
-      <p class="problem__summary" lang="en">{{{ math(play.problem.summaryMd) }}}</p>
-    @else
-      <p class="problem__summary muted">{{ t('messages.play.noSummary') }}</p>
-    @end
-
-    <div class="constraints">
-      <span class="constraints__label">{{ t('messages.play.constraints') }}</span>
-      <span lang="en">{{{ math(play.problem.constraintsText) }}}</span>
-    </div>
-  </article>
-
-  <section class="layer" aria-live="polite">
-    <p class="layer__step">
-      {{
-        t('messages.play.questionOf', {
-          number: play.stepNumber,
-          count: play.stepCount,
-        })
-      }}
-    </p>
-    <h2 class="layer__prompt" lang="{{ generated ? i18n.locale : 'en' }}">{{ prompt }}</h2>
-    @if(!play.feedback)
-      <form
-        class="options"
-        method="post"
-        action="{{ base }}/answer"
-        hx-post="{{ base }}/answer"
-        hx-target="#play"
-        hx-swap="outerHTML"
-      >
-        {{ csrfField() }}
-        <input type="hidden" name="step" value="{{ play.stepToken }}" />
-        @each(option in play.question.options)
-          <button type="submit" name="option" value="{{ option.id }}" class="option" lang="en">
-            {{{ math(option.text) }}}
-          </button>
-        @end
-      </form>
-
-      <div class="layer__footer">
-        <form
-          method="post"
-          action="{{ base }}/give-up"
-          hx-post="{{ base }}/give-up"
-          hx-target="#play"
-          hx-swap="outerHTML"
-        >
-          {{ csrfField() }}
-          <input type="hidden" name="step" value="{{ play.stepToken }}" />
-          <button type="submit" class="button button--ghost">
-            {{ t('messages.play.giveUp') }}
-          </button>
-        </form>
-        <form
-          method="post"
-          action="{{ base }}/skip"
-          hx-post="{{ base }}/skip"
-          hx-target="#play"
-          hx-swap="outerHTML"
-        >
-          {{ csrfField() }}
-          <button type="submit" class="button button--ghost">{{ t('messages.play.skip') }}</button>
-        </form>
-      </div>
-    @else
-      <ul class="options options--answered">
-        @each(option in play.feedback.options)
-          <li class="option option--{{ option.mark }} {{ option.picked ? 'option--picked' : '' }}">
-            <span lang="en">{{{ math(option.text) }}}</span>
-            @if(option.picked)
-              <span class="option__tag">{{ t('messages.play.yourAnswer') }}</span>
-            @end
-          </li>
-        @end
-      </ul>
-
-      <div class="verdict verdict--{{ play.feedback.outcome }}" role="status">
-        @if(play.feedback.outcome === 'correct')
-          <p class="verdict__title">{{ t('messages.play.verdict.correct') }}</p>
-        @elseif(play.feedback.outcome === 'overkill')
-          <p class="verdict__title">{{ t('messages.play.verdict.overkill') }}</p>
-          <p class="verdict__answer" lang="en">{{{ math(play.feedback.expectedText) }}}</p>
-        @elseif(play.feedback.outcome === 'wrong')
-          <p class="verdict__title">{{ t('messages.play.verdict.wrong') }}</p>
-          <p class="verdict__answer" lang="en">{{{ math(play.feedback.expectedText) }}}</p>
-        @else
-          <p class="verdict__title">{{ t('messages.play.verdict.gaveUp') }}</p>
-          <p class="verdict__answer" lang="en">{{{ math(play.feedback.expectedText) }}}</p>
-        @end
-        @if(play.feedback.pickedWhy)
-          <p class="verdict__why" lang="en">{{{ math(play.feedback.pickedWhy) }}}</p>
-        @end
-        @if(play.feedback.explanation)
-          <p class="verdict__explanation" lang="en">{{{ math(play.feedback.explanation) }}}</p>
-        @end
-      </div>
-      @if(play.isLastStep)
-        <div class="reveal">
-          <p class="reveal__label">{{ t('messages.play.thisWas') }}</p>
-          <h3 class="reveal__title">
-            <a href="{{ play.problem.url }}" target="_blank" rel="noopener noreferrer">
-              {{ play.problem.title }}
-            </a>
-            <small>{{ play.problem.source }}</small>
-          </h3>
-          @!credit({ problem: play.problem })
-          @if(play.problem.traps.length)
-            <p class="reveal__label">{{ t('messages.play.traps') }}</p>
-            <ul class="traps" lang="en">
-              @each(trap in play.problem.traps)
-                <li>{{{ math(trap) }}}</li>
-              @end
-            </ul>
-          @end
-        </div>
-      @end
-
-      <form
-        method="post"
-        action="{{ base }}/continue"
-        hx-post="{{ base }}/continue"
-        hx-target="#play"
-        hx-swap="outerHTML"
-      >
-        {{ csrfField() }}
-        <button type="submit" class="button button--primary button--wide" autofocus>
-          @if(!play.isLastStep)
-            {{ t('messages.play.continue') }}
-          @elseif(play.isLastProblem)
-            {{ t('messages.play.seeResults') }}
-          @else
-            {{ t('messages.play.nextProblem') }}
-          @end
-        </button>
-      </form>
-    @end
-    {{-- Goes through the app so the problem id isn't in the page until someone clicks. --}}
-    <p class="report">
-      <a href="{{ base }}/report?step={{ play.stepToken }}" target="_blank" rel="noopener">
-        {{ t('messages.play.report') }}
-      </a>
-    </p>
-  </section>
+  @if(play.type === 'drill')
+    @include('partials/play_drill')
+  @else
+    @include('partials/play_problem')
+  @end
 </div>

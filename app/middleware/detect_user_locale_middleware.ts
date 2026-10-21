@@ -8,7 +8,8 @@ export const LOCALE_COOKIE = 'locale'
 /**
  * Picks the UI language: the `locale` cookie set by the header switch, else
  * the browser's Accept-Language, else English. Shares the request's i18n
- * object with the HTTP context and Edge (`t()` in templates).
+ * object with the HTTP context and Edge (`t()` in templates), plus
+ * `localized()` for content that may have a Spanish version (D-064).
  */
 export default class DetectUserLocaleMiddleware {
   /**
@@ -38,7 +39,14 @@ export default class DetectUserLocaleMiddleware {
     ctx.containerResolver.bindValue(I18n, ctx.i18n)
 
     if ('view' in ctx) {
-      ctx.view.share({ i18n: ctx.i18n })
+      const spanish = ctx.i18n.locale === 'es'
+      ctx.view.share({
+        i18n: ctx.i18n,
+        /** Content text in the UI's language: the Spanish version if there is one, else English. */
+        localized: (en: string | null, es?: string | null) => (spanish && es ? es : en),
+        /** The `lang` attribute for that text. */
+        localizedLang: (es?: string | null) => (spanish && es ? 'es' : 'en'),
+      })
     }
 
     return next()

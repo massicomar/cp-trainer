@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cp-trainer.local/schema/big-o.schema.json",
+  "title": "CP Trainer Big O table",
+  "description": "drills/big-o.json: the data the general drills are generated from (largest complexity for a bound, up to which n a complexity fits, fits / doesn't fit).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "opsPerSecond", "complexities", "nValues"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "opsPerSecond": {
+      "description": "Simple operations that fit in one second; the explanations show the arithmetic against it.",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "complexities": {
+      "description": "In order of growth, slowest first. maxN must not increase along the list.",
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "maxN"],
+        "properties": {
+          "id": {
+            "description": "Names a growth function the app knows how to evaluate.",
+            "enum": ["1", "log-n", "n", "n-log-n", "n2", "n2-log-n", "n3", "2n", "n-2n", "n-fact"]
+          },
+          "label": {
+            "description": "LaTeX, without $ delimiters, e.g. O(n \\log n).",
+            "type": "string",
+            "minLength": 1
+          },
+          "maxN": {
+            "description": "The largest n that fits in one second. 1e18 means any n.",
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    "nValues": {
+      "description": "The n values drills ask about. Values too close to a threshold are skipped automatically.",
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": { "type": "number", "minimum": 1 }
+    }
+  }
+}

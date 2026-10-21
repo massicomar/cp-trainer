@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+<head>
+    <!-- Load sentry as early as possible -->
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="https://js.sentry-cdn.com/1ad5e9767ad243d396a93ef40135e743.min.js" crossorigin="anonymous" data-lazy="no"></script>
+
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module">
+        Sentry.onLoad(function() {
+            Sentry.init({
+                dsn: "https://1ad5e9767ad243d396a93ef40135e743:0f66eac85d88443baa349f5bc2497f28@sentry.io/271015",
+                release: "ad6dae5f410fd4c2837cba50e626b554fef6e256",
+                environment: "production",
+                whitelistUrls: [
+                    /https?:\/\/open\.kattis\.com/ 
+                ],
+                ignoreErrors: [
+                    "Non-Error exception captured", 
+                    "Non-Error promise rejection captured",
+                    'ResizeObserver loop limit exceeded',
+                    'Can\'t find variable: zaloJSV2'
+                ],
+                denyUrls: ['/static\.cloudflareinsights\.com/'], 
+                autoSessionTracking: false,
+                integrations: [
+                    new Sentry.BrowserTracing(),
+                ],
+                tracesSampleRate: 0,
+                profilesSampleRate: 0.001,
+                replaysSessionSampleRate: 0, 
+                replaysOnErrorSampleRate: 0, 
+                tracePropagationTargets: ["localhost", /https?:\/\/open\.kattis\.com/], 
+            });
+            Sentry.configureScope((scope) => scope.setTransactionName("problems_view")); 
+        })
+    </script>
+
+    <meta charset="UTF-8" >
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Polygon Area &ndash; Kattis, Kattis</title>
+
+    <!-- Jquery and Jquery-ui -->
+    <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/jquery-ui-dist/jquery-ui.theme.min.css" rel="stylesheet">
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/jquery/dist/jquery.min.js"></script>
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/jquery-ui-dist/jquery-ui.min.js"></script>
+
+    <!-- Timezone Cookie -->
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/modules/timezone.js"></script>
+
+    <!-- Fonts/Icons -->
+    <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/merriweather/300.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/merriweather/300-italic.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/merriweather/400.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/merriweather/400-italic.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/merriweather/700.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/merriweather/700-italic.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/300.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/300-italic.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/400.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/400-italic.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/500.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/500-italic.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/700.css" rel="stylesheet">
+        <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/@fontsource/ubuntu/700-italic.css" rel="stylesheet">
+
+    <!-- DateRangePicker CSS -->
+    <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
+
+    <!-- Editable and Select2 -->
+    <link href="/assets/d86ee7578837c0e4962a0bba9ef5bb19/select2/dist/css/select2.css" rel="stylesheet">
+
+        <link rel="apple-touch-icon-precomposed" sizes="57x57"   href="/images/favicon/apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/favicon/apple-touch-icon-114x114.png">
+        <link rel="apple-touch-icon-precomposed" sizes="72x72"   href="/images/favicon/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/favicon/apple-touch-icon-144x144.png">
+        <link rel="apple-touch-icon-precomposed" sizes="60x60"   href="/images/favicon/apple-touch-icon-60x60.png">
+        <link rel="apple-touch-icon-precomposed" sizes="120x120" href="/images/favicon/apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon-precomposed" sizes="76x76"   href="/images/favicon/apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/images/favicon/apple-touch-icon-152x152.png">
+        <link rel="icon" type="image/png" href="/images/favicon/favicon-196x196.png" sizes="196x196">
+        <link rel="icon" type="image/png" href="/images/favicon/favicon-96x96.png"   sizes="96x96">
+        <link rel="icon" type="image/png" href="/images/favicon/favicon-32x32.png"   sizes="32x32">
+        <link rel="icon" type="image/png" href="/images/favicon/favicon-16x16.png"   sizes="16x16">
+        <link rel="icon" type="image/png" href="/images/favicon/favicon-128.png"     sizes="128x128">
+        <link rel="shortcut icon"         href="/images/favicon/favicon.ico">
+        <meta name="application-name"                content="Kattis, Kattis">
+        <meta name="msapplication-TileColor"         content="#FFFFFF">
+        <meta name="msapplication-TileImage"         content="/images/favicon/mstile-144x144.png">
+        <meta name="msapplication-square70x70logo"   content="/images/favicon/mstile-70x70.png">
+        <meta name="msapplication-square150x150logo" content="/images/favicon/mstile-150x150.png">
+        <meta name="msapplication-wide310x150logo"   content="/images/favicon/mstile-310x150.png">
+        <meta name="msapplication-square310x310logo" content="/images/favicon/mstile-310x310.png">
+
+    <!-- Own CSS -->
+    <link rel="stylesheet" href="/css/ba9e0b518ccdcbb304efad6c1e56b353/style.css">
+    <style type="text/css"> 
+     .logo {
+         background-color: ;
+     }
+     :root {
+             --branding-border: linear-gradient(rgb(240,176,52), rgb(240,176,52));
+     }
+
+     
+    </style>
+
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="text/javascript">
+        window.page_loaded_at = new Date();
+        jQuery.noConflict();
+    </script>
+
+    <meta name="robots" content="noindex">
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="/js/2978264d850c4f47a5ef7642779037d3/non-es6/mathjax_conf.js" defer></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/mathjax/es5/tex-mml-chtml.js" defer id="MathJax-script"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" defer src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/ace-builds/src-min-noconflict/ace.js"></script>
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/modules/tooltip.js"></script>
+</head>
+
+<body class=" l-body_grid"  ><a href="https://open.kattis.com/cdn-cgi/content?id=9Ta.fNl4pnMYiBIJ4NScDUIFJhQX9nALfF_pcFoVOhM-1792519148.74358-1.2.1.1-V67xVE1PwYnearriXN3xxwFEl3k.bb6Tcvi3LRePK7jGTmEeFH6u7ydNaJikD6a9" aria-hidden="true" rel="nofollow noopener" style="display: none !important; visibility: hidden !important"></a>
+
+<header class="l-page_header">
+    <div class="page_header-arrow_expand_collapse">
+        <i class="page_header-arrow_expand_collapse-arrow"></i>
+    </div>
+    <div class="page_header-wrapper">
+        <div class="logo-container">
+            <a class="logo-link" href="/" title="Kattis">
+                <img class="logo" src="/images/site-logo?v=0a3f6018aacf449381741e45cf0ff6ba" alt="Kattis logo" />
+            </a>
+            <h4 class="logo-container-text">Kattis</h4>
+            <button class="menu_mobile_link" >
+                <i class="fas fa-bars menu_mobile_link_icon"></i>
+            </button>
+            <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/pages/master/nav.js"></script>
+        </div>
+        <div class="branding_border"></div>
+        <div class="page_header-content">
+            <nav aria-label="Main" class="main_menu">
+                <ul>
+                        <li>
+                            <a  href="/problems" class="main_menu-item main_menu-item_link " aria-current="true" title="Problems">
+                                    <i class="fas fa-puzzle-piece main_menu-item_icon"></i>
+                                <span class="main_menu-item_name ">Problems</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a  href="/contests" class="main_menu-item main_menu-item_link "  title="Contests">
+                                    <i class="fas fa-award main_menu-item_icon"></i>
+                                <span class="main_menu-item_name ">Contests</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a  href="/challenge" class="main_menu-item main_menu-item_link "  title="Challenge">
+                                    <i class="fas fa-star main_menu-item_icon"></i>
+                                <span class="main_menu-item_name beta_label">Challenge</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a  href="/ranklist" class="main_menu-item main_menu-item_link "  title="Ranklists">
+                                    <i class="fas fa-trophy main_menu-item_icon"></i>
+                                <span class="main_menu-item_name ">Ranklists</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a  href="/jobs" class="main_menu-item main_menu-item_link "  title="Jobs">
+                                    <i class="fas fa-suitcase main_menu-item_icon"></i>
+                                <span class="main_menu-item_name ">Jobs</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a  href="/languages" class="main_menu-item main_menu-item_link "  title="Languages">
+                                    <i class="fas fa-code main_menu-item_icon"></i>
+                                <span class="main_menu-item_name ">Languages</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a  href="/info" class="main_menu-item main_menu-item_link "  title="Info">
+                                    <i class="fas fa-info main_menu-item_icon"></i>
+                                <span class="main_menu-item_name ">Info</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a  href="https://support.kattis.com" class="main_menu-item main_menu-item_link "  title="Help">
+                                    <i class="fas fa-question main_menu-item_icon"></i>
+                                <span class="main_menu-item_name ">Help</span>
+                            </a>
+                        </li>
+                </ul>
+            </nav>
+                <search class="header_item_margin search-lower">
+                    <label for="search_input" class="search-label search-label-right">Search</label>
+                    <form id="search_form" method="GET" action="/search" class="search">
+                            <img src="/images/site/header/logo-empty.png?0bb770=" alt="Kattis Cat" class="search-mascot" />
+                        <input id="search_input" type="search" name="q" class="search-input" placeholder="Search Kattis" />
+                        <i id="search_submit" class="fas fa-search search-icon"></i>
+                    </form>
+                </search>
+        </div>
+    </div>
+</header>
+
+
+<div class="top_bar ">
+    <script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/pages/master/top_bar.js"></script>
+    <div class="branding_border"></div>
+        <div class="top_bar-content-wrapper">
+            <div class="top_bar-section top_bar-section-large">
+                <nav aria-label="Breadcrumbs" class="breadcrumbs top_bar-item">
+                    <ol>
+                            <li class="breadcrumb"><a href="/problems">Problems</a></li>
+                        <li class="breadcrumb">Polygon Area</li>
+                    </ol>
+                </nav>
+
+            </div>
+
+            <div class="top_bar-section collapsible-menu-group-right top_bar-section-small items-center">
+
+    <form method="post" style="display: inline">
+<input type="hidden" name="csrf_token" value="1273868365927924742271767224757624070500" />        <button type="submit" name="login_and_return" class="button button-primary button-small">Log in</button>
+    </form>
+            </div>
+        </div>
+
+
+</div>
+
+    <main class="flex flex-col grow content_padding">
+        <div class="alerts-container">
+
+
+
+
+        </div>
+
+
+
+
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" defer src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/ace-builds/src-min-noconflict/ace.js"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/modules/highlight.js"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module">
+    import initializeCopyButtons from "/js/2978264d850c4f47a5ef7642779037d3/modules/attach-copy-buttons.js";
+    jQuery(document).ready(function($) {
+        initializeCopyButtons("Copied to clipboard!");
+    });
+</script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/modules/mobile_tabs.js"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/modules/load_select.js"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="module" src="/js/2978264d850c4f47a5ef7642779037d3/pages/problems/view.js"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" type="application/json" id="javascript-translations">
+    { "submit_button": "Submit", "submit_button_multiple": "Submit %d files" }
+</script>
+
+<div class="l-book">
+    <div class="book-container">
+        <div id="bookmark" class="book-bookmark is-hidden">
+            <div class="book-bookmark-text" data-cy="instruction-bookmark">
+                View problem statement: <span class="book-bookmark-text-subtext">Polygon Area</span><i class="fas fa-chevron-left book-bookmark-text-icon"></i>
+            </div>
+        </div>
+        <div id="instructions-container" class="book-page-container grow book-page-fixed_width h-max-content">
+            <article class="book-page">
+                <div class="book-page-fixed_width">
+                    <button type="button" id="instructions-close" class="button button-inverted button-inline button-secondary book-close"><i class="fas fa-chevron-left book-close-icon"></i>Hide</button>
+                    <h1 class="book-page-heading">Polygon Area</h1>
+                        
+  <div class="problembody">
+    <div style="width:40.00%" class="illustration">
+      <img src=
+      "/problems/polygonarea/file/statement/en/img-0001.png" alt=
+      "/problems/polygonarea/file/statement/en/img-0001.png" class=
+      "illustration">
+      <div class="description">
+        Sample test cases.
+      </div>
+    </div>
+    <p>Compute the area of a simple polygon, and the direction
+    (clockwise or counterclockwise) in which its vertices are
+    given.</p>
+    <h2>Input</h2>
+    <p>Input contains up to <span class=
+    "tex2jax_process">$25$</span> test cases. Each test case begins
+    with an integer <span class="tex2jax_process">$n$</span>
+    (<span class="tex2jax_process">$3 \leq n \leq 1\, 000$</span>).
+    Then follow the <span class="tex2jax_process">$n$</span>
+    vertices of a simple polygon, one per line, each of the form
+    <span class="tex2jax_process">$x\ y$</span>. The points may be
+    given in either clockwise or counterclockwise order.
+    Coordinates are integers with absolute value bounded by
+    <span class="tex2jax_process">$10\, 000$</span>. The input is
+    terminated by a case beginning with <span class=
+    "tex2jax_process">$0$</span>.</p>
+    <h2>Output</h2>
+    <p>For each test case, output a line <span class=
+    "tex2jax_process">$D\ A$</span>, where <span class=
+    "tex2jax_process">$D$</span> is one of “<tt>CW</tt>” or
+    “<tt>CCW</tt>”, indicating whether the polygon was given in
+    clockwise or counterclockwise order, respectively. <span class=
+    "tex2jax_process">$A$</span> is the area of the polygon, given
+    with exactly one digit after the decimal point.</p>
+    <table class="sample" summary="sample data">
+      <tr>
+        <th>Sample Input 1</th>
+        <th>Sample Output 1</th>
+      </tr>
+      <tr>
+        <td>
+          <pre>3
+0 0
+10 0
+0 10
+5
+41 -6
+-24 -74
+-51 -6
+73 17
+-30 -34
+0
+</pre>
+        </td>
+        <td>
+          <pre>CCW 50.0
+CW 3817.5
+</pre>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+                </div>
+            </article>
+        </div>
+
+        <div id="editor-container" class="book-page-container grow static-fixed-parent" data-problem-name="polygonarea" data-duplicate-file-action="ask"
+                                                                                        data-submit-url="/problems/polygonarea/submit"
+                                                                                        data-sourcelim="131072"
+                                                                                        data-may-submit="false"
+                                                                                        
+                                                                                        data-csrf-token="1273868365927924742271767224757624070500"
+                                                                                        
+                                                                                        data-current-tab="edit-and-submit-tab"
+                                                                                        data-default-tab="edit-and-submit-tab">
+            <div class="tab static-fixed-content l-strip_list-flex">
+    <div class="strip-item-plain problem-view-tab-nav-container">
+        <div role="tablist" tabindex="-1" class="tab-nav problem-view-tab-nav" data-mobile-select-classes="is-hidden@md tab-select-js" data-active-page="edit-and-submit-tab">
+    <button role="tab" type="button" aria-selected="true" tabindex="0" aria-controls="edit-and-submit-tab" id="edit-and-submit-tab-link" class="tab-nav-item tab-nav-js" title="Edit &amp; Submit">Edit &amp; Submit</button>
+    <button role="tab" type="button" aria-selected="false" tabindex="-1" aria-controls="metadata-tab" id="metadata-tab-link" class="tab-nav-item tab-nav-js" title="Metadata">Metadata</button>
+    <button role="tab" type="button" aria-selected="false" tabindex="-1" aria-controls="submissions-tab" id="submissions-tab-link" class="tab-nav-item tab-nav-js" title="My Submissions">My Submissions</button>
+        </div>
+        <button type="button" class="button button-inverted button-inline button-secondary book-close-tabs">Hide <i class="fas fa-chevron-right book-close-icon"></i></button>
+    </div>
+                    <div role="tabpanel" id="edit-and-submit-tab" class="overflow-y-auto grow"  tabindex="0" aria-labelledby="edit-and-submit-tab-link" data-tabs-container="#editor-container">
+                            <div id="editor-container-intro" class="editor-container-content">
+                                <div class="editor-container-intro-half">
+                                    <div class="editor-container-intro-half-content">
+                                        <div class="editor-container-intro-content">
+                                            <p class="editor-container-intro-text">
+                                                    Please log in to submit a solution to this problem
+                                            </p>
+    <form method="post" style="display: inline" class="w-full text-center">
+<input type="hidden" name="csrf_token" value="1273868365927924742271767224757624070500" />        <button type="submit" name="login_and_return" class="button button-primary button-medium editor-container-intro-button">Log in</button>
+    </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="editor-drag_highlight is-hidden">
+                                </div>
+                            </div>
+                    </div>
+                    <div role="tabpanel" id="metadata-tab" class="scrollable-container" hidden tabindex="0" aria-labelledby="metadata-tab-link" data-tabs-container="#editor-container">
+                        <div class="overflow-y-auto metadata-grid-container">
+                            <div class="metadata-grid">
+                                    <div class="card my-0 gap-3 metadata-cpu-card">
+        <i class="fas fa-tachometer-alt text-3xl self-center" style="color: #ced5e4;"></i>
+        <div class="flex flex-col gap-2 self-center">
+            <span class="info_label">CPU Time limit</span>
+            <span class="text-lg font-bold text-link">1 second</span>
+        </div>
+    </div>
+     <div class="card my-0 gap-3 metadata-memory-card">
+        <i class="fas fa-memory text-3xl self-center" style="color: #ced5e4;"></i>
+        <div class="flex flex-col gap-2 self-center">
+            <span class="info_label">Memory limit</span>
+            <span class="text-lg font-bold text-link">1024 MB</span>
+        </div>
+    </div>
+     <div class="card my-0 gap-3 metadata-difficulty-card">
+        <span class="self-center whitespace-nowrap difficulty_number difficulty_number-problem_view difficulty_easy">
+            1.8
+        </span>
+        <div class="flex flex-col gap-2 self-center">
+            <span class="info_label">Difficulty</span>
+            <span class="text-lg font-bold text-link">Easy</span>
+        </div>
+    </div>
+
+                                    <div class="card my-0 metadata-links-card">
+        <div class="flex flex-col gap-3">
+            <span class="info_label">Links</span>
+                    <a href="/problems/polygonarea/statistics" class="flex gap-3">
+                        <i class="fas fa-chart-column text-light-blue self-center"></i>
+                        Statistics
+                    </a>
+
+
+        </div>
+    </div>
+         <div class="card my-0 metadata-downloads-card">
+        <div class="flex flex-col gap-3">
+            <span class="info_label">Downloads</span>
+                <a href="/problems/polygonarea/file/statement/samples.zip" class="flex gap-3" download="polygonarea.zip">
+                    <i class="fas fa-file-arrow-down text-light-blue self-center"></i>
+                    Sample data files
+                </a>
+        </div>
+    </div>
+        <div class="card my-0 metadata-license-card">
+        <div class="flex flex-col gap-3">
+            <span class="info_label">Source &amp; License</span>
+                <span>
+                    <i class="fas fa-feather-pointed text-gray-200 self-center mr-1" title="Author"></i>
+                        
+                            <a class="whitespace-nowrap" href="/problem-authors/Per%20Austrin">Per Austrin</a>
+                        
+                </span>
+
+                <span class="flex gap-3">
+                        <a href="/problem-sources/KTH%20CSC%20Popup%202005">KTH CSC Popup 2005</a>
+                </span>
+
+                <span class="flex gap-3">
+                    <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/" style="vertical-align: middle;">
+                            <img class="problem-license" alt="Creative Commons License (cc by-sa)" src="https://licensebuttons.net/l/by-sa/3.0/80x15.png" />
+                    </a>
+                </span>
+
+
+
+        </div>
+    </div>
+
+                            </div>
+                        </div>
+                    </div>
+                        <div role="tabpanel" id="submissions-tab" class="book-page static-fixed-content-no-expand" hidden tabindex="0" aria-labelledby="submissions-tab-link" data-tabs-container="#editor-container">
+                            <p align="center">
+                                You haven't made any submissions on this problem yet.
+                            </p>
+                        </div>
+            </div>
+        </div>
+        <div id="bookmark-editor" class="book-bookmark is-hidden">
+            <div class="book-bookmark-text" data-cy="editor-bookmark">
+                Editor &amp; Metadata<i class="fas fa-chevron-right book-bookmark-text-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </main>
+
+
+
+
+    <footer class="l-footer">
+        <nav aria-label="Footer links" class="text-center text-sm">
+            <ul class="divider-separated-list">
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="https://status.kattis.com">System Status</a></li>
+                <li><a rel="terms-of-service" href="/contracts/current/tos">Terms of Service</a></li>
+                <li><a rel="privacy-policy" href="/contracts/current/privacy_policy">Privacy Policy</a></li>
+            </ul>
+        </nav>
+    </footer>
+
+
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/moment/min/moment.min.js"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/bootstrap-daterangepicker/daterangepicker.js"></script>
+<script nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="/assets/d86ee7578837c0e4962a0bba9ef5bb19/select2/dist/js/select2.full.min.js"></script>
+
+
+    <script defer nonce="4d84c80b2c63e69b89046e37af8bce35a70883c9cdb09b4e401b22699f196fcd" src="https://status.kattis.com/embed/script.js"></script>
+</body>
+</html>

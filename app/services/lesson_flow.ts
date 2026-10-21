@@ -1,44 +1,66 @@
 import { inject } from '@adonisjs/core'
 import { DateTime } from 'luxon'
 import Attempt from '#models/attempt'
+import DrillAttempt from '#models/drill_attempt'
 import Lesson from '#models/lesson'
 import type Player from '#models/player'
 import type Problem from '#models/problem'
 import AnswerGrader from '#services/answer_grader'
 import Catalog, { type ProblemBundle, type Taxonomy } from '#services/catalog'
+import DrillBuilder, { type Drill } from '#services/drill_builder'
+import DrillCatalog from '#services/drill_catalog'
+import DrillPlanner, { planItems } from '#services/drill_planner'
 import LessonPlanner from '#services/lesson_planner'
 import type { ReportTarget } from '#services/problem_reports'
 import QuestionBuilder, { type Question } from '#services/question_builder'
+import { DRILL_KINDS, type LessonItem } from '#types/drills'
 import type { Outcome, Selection } from '#types/play'
 
 /**
- * What the lesson page shows right now: a question, or (once `attempt` is
- * set) the feedback for it.
+ * What the lesson page shows right now, problem or drill: a question, or
+ * (once `attempt` is set) the feedback for it.
  */
-export interface PlayState {
+interface PlayBase {
   lesson: Lesson
-  problem: Problem
-  problemNumber: number
-  problemCount: number
-  stepNumber: number
-  stepCount: number
   /**
-   * Identifies the current layer in forms ("<problem index>.<step index>").
+   * Identifies the current question in forms ("<item index>.<step index>").
    * Opaque on purpose: layer ids contain the problem id, which would let a
    * player look the original up from the page source.
    */
   stepToken: string
+  /** One entry per item of the lesson, drills marked. */
+  progress: { state: 'done' | 'current' | 'todo'; drill: boolean }[]
+  problemCount: number
+  subjectNames: string[]
+  isLastItem: boolean
+  /** What the button after the feedback says. */
+  next: 'continue' | 'nextProblem' | 'seeResults'
+}
+
+export interface ProblemPlay extends PlayBase {
+  type: 'problem'
+  problem: Problem
+  problemNumber: number
+  stepNumber: number
+  stepCount: number
   question: Question
   /** Set once the current layer is answered: the page shows feedback. */
   attempt: Attempt | null
   feedback: Feedback | null
   /** The problem's last layer: its feedback also reveals the title, link and traps. */
   isLastStep: boolean
-  isLastProblem: boolean
-  /** One entry per problem in the lesson. */
-  progress: ('done' | 'current' | 'todo')[]
-  subjectNames: string[]
 }
+
+export interface DrillPlay extends PlayBase {
+  type: 'drill'
+  drill: Drill
+  attempt: DrillAttempt | null
+  feedback: DrillFeedback | null
+}
+
+export type PlayState = ProblemPlay | DrillPlay
+
+type Mark = 'right' | 'overkill' | 'picked-wrong' | 'none'
 
 /**
  * The answered question, ready to display: which options to color and what
@@ -50,13 +72,20 @@ export interface Feedback {
     id: string
     text: string
     /** right: correct answer · overkill: works but heavier · picked-wrong: the player's wrong pick */
-    mark: 'right' | 'overkill' | 'picked-wrong' | 'none'
+    mark: Mark
     picked: boolean
   }[]
   /** The authored note on the picked option, if any. */
   pickedWhy: string | null
+  pickedWhyEs: string | null
   expectedText: string
   explanation: string | null
+  explanationEs: string | null
+}
+
+export interface DrillFeedback {
+  outcome: Outcome
+  options: { id: string; text: string; textKey?: string; mark: Mark; picked: boolean }[]
 }
 
 export interface LayerScore {
@@ -68,6 +97,7 @@ export interface LayerScore {
 
 export interface LessonSummary {
   lesson: Lesson
+  /** Problem layers first, then one line per drill kind. */
   scores: LayerScore[]
   problems: {
     problem: Problem
@@ -75,14 +105,26 @@ export interface LessonSummary {
   }[]
 }
 
-interface Position {
+interface ProblemPosition {
+  type: 'problem'
   lesson: Lesson
+  itemIndex: number
   taxonomy: Taxonomy
   bundle: ProblemBundle
   steps: ProblemBundle['layers']
   step: ProblemBundle['layers'][number]
   attempts: Attempt[]
 }
+
+interface DrillPosition {
+  type: 'drill'
+  lesson: Lesson
+  itemIndex: number
+  drill: Drill
+  attempt: DrillAttempt | null
+}
+
+type Position = ProblemPosition | DrillPosition
 
 const KIND_LABELS: Record<string, string> = {
   'subject': 'Subject',
@@ -93,13 +135,17 @@ const KIND_LABELS: Record<string, string> = {
   'observation': 'Observation',
   'node-stores': 'Node contents',
   'trap': 'Trap',
+  'max-big-o': 'Largest complexity for a bound',
+  'algorithm-big-o': 'Complexity of an algorithm',
+  'max-n': 'Largest n for a complexity',
+  'fits': 'Fits or not',
 }
 
 /**
- * The lesson state machine. The cursor (problem index, layer index) is stored
- * on the lesson row; whether the current layer was answered is derived from
- * its attempt. Requests that don't match the current state (a stale tab, a
- * double click) are ignored, so the caller can always just re-render.
+ * The lesson state machine. The cursor (item index, layer index) is stored
+ * on the lesson row; whether the current question was answered is derived
+ * from its attempt. Requests that don't match the current state (a stale
+ * tab, a double click) are ignored, so the caller can always just re-render.
  */
 @inject()
 export default class LessonFlow {
@@ -107,7 +153,10 @@ export default class LessonFlow {
     protected catalog: Catalog,
     protected builder: QuestionBuilder,
     protected grader: AnswerGrader,
-    protected planner: LessonPlanner
+    protected planner: LessonPlanner,
+    protected drillCatalog: DrillCatalog,
+    protected drillPlanner: DrillPlanner,
+    protected drillBuilder: DrillBuilder
   ) {}
 
   /**
@@ -120,13 +169,19 @@ export default class LessonFlow {
     player.preferences = selection
     await player.save()
 
+    const items: LessonItem[] = selection.includeDrills
+      ? planItems(problemIds, await this.drillPlanner.availability(selection.subjects), Math.random)
+      : problemIds.map((id) => ({ type: 'problem', id }))
+
     return Lesson.create({
       playerId: player.id,
       subjectIds: selection.subjects,
       tiers: selection.tiers,
       includeCommunity: selection.includeCommunity,
+      includeDrills: selection.includeDrills,
       problemIds,
-      cursorProblem: 0,
+      items,
+      cursorItem: 0,
       cursorLayer: 0,
       layerStartedAt: DateTime.now(),
       status: 'active',
@@ -140,33 +195,64 @@ export default class LessonFlow {
     const position = await this.position(lesson)
     if (!position) return null
 
-    const { bundle, taxonomy, steps, step, attempts } = position
+    const taxonomy = position.type === 'problem' ? position.taxonomy : await this.catalog.taxonomy()
+    const cursor = lesson.cursorItem
+    const isLastItem = cursor === lesson.items.length - 1
+    const nextIsProblem = lesson.items[cursor + 1]?.type === 'problem'
+    const base = {
+      lesson,
+      stepToken: stepToken(position),
+      progress: lesson.items.map((item, i) => ({
+        state:
+          i < cursor ? ('done' as const) : i === cursor ? ('current' as const) : ('todo' as const),
+        drill: item.type === 'drill',
+      })),
+      problemCount: lesson.problemIds.length,
+      subjectNames: lesson.subjectIds.map((id) => taxonomy.subjectById.get(id)?.name ?? id),
+      isLastItem,
+    }
+    const after = isLastItem ? 'seeResults' : nextIsProblem ? 'nextProblem' : 'continue'
+
+    if (position.type === 'drill') {
+      return {
+        ...base,
+        type: 'drill',
+        next: after,
+        drill: position.drill,
+        attempt: position.attempt,
+        feedback: position.attempt ? drillFeedbackFor(position.drill, position.attempt) : null,
+      }
+    }
+
+    const { bundle, steps, step, attempts } = position
     const stepIndex = steps.indexOf(step)
     const question = this.question(position)
     const attempt = attempts.find((a) => a.layerId === step.id) ?? null
+    const isLastStep = stepIndex === steps.length - 1
     return {
-      lesson,
+      ...base,
+      type: 'problem',
+      next: isLastStep ? after : 'continue',
       problem: bundle.problem,
-      problemNumber: lesson.cursorProblem + 1,
-      problemCount: lesson.problemIds.length,
+      problemNumber: lesson.items.slice(0, cursor + 1).filter((i) => i.type === 'problem').length,
       stepNumber: stepIndex + 1,
       stepCount: steps.length,
-      stepToken: stepToken(position),
       question,
       attempt,
       feedback: attempt ? feedbackFor(question, attempt) : null,
-      isLastStep: stepIndex === steps.length - 1,
-      isLastProblem: lesson.cursorProblem === lesson.problemIds.length - 1,
-      progress: lesson.problemIds.map((_, i) =>
-        i < lesson.cursorProblem ? 'done' : i === lesson.cursorProblem ? 'current' : 'todo'
-      ),
-      subjectNames: lesson.subjectIds.map((id) => taxonomy.subjectById.get(id)?.name ?? id),
+      isLastStep,
     }
   }
 
   async answer(lesson: Lesson, step: string, chosen: string) {
     const position = await this.openPosition(lesson, step)
     if (!position) return
+    if (position.type === 'drill') {
+      const option = position.drill.options.find((o) => o.id === chosen)
+      if (!option) return
+      await this.recordDrill(position, option.role === 'correct' ? 'correct' : 'wrong', chosen)
+      return
+    }
     const outcome = this.grader.grade(this.question(position), chosen)
     if (!outcome) return
     await this.record(position, outcome, chosen)
@@ -175,29 +261,38 @@ export default class LessonFlow {
   async giveUp(lesson: Lesson, step: string) {
     const position = await this.openPosition(lesson, step)
     if (!position) return
-    await this.record(position, 'gave_up', null)
+    if (position.type === 'drill') await this.recordDrill(position, 'gave_up', null)
+    else await this.record(position, 'gave_up', null)
   }
 
   /**
-   * Records `skipped` for every layer of the current problem not answered
-   * yet, then moves to the next problem without revealing anything.
+   * Records `skipped` for every question of the current item not answered
+   * yet, then moves to the next item without revealing anything.
    */
   async skip(lesson: Lesson) {
     const position = await this.position(lesson)
     if (!position) return
-    const answered = new Set(position.attempts.map((a) => a.layerId))
-    for (const step of position.steps) {
-      if (!answered.has(step.id)) await this.record({ ...position, step }, 'skipped', null, false)
+    if (position.type === 'drill') {
+      if (!position.attempt) await this.recordDrill(position, 'skipped', null, false)
+    } else {
+      const answered = new Set(position.attempts.map((a) => a.layerId))
+      for (const step of position.steps) {
+        if (!answered.has(step.id)) await this.record({ ...position, step }, 'skipped', null, false)
+      }
     }
     await this.advance(lesson, true)
   }
 
   /**
-   * After feedback: next layer, next problem, or the end of the lesson.
+   * After feedback: next layer, next item, or the end of the lesson.
    */
   async continue(lesson: Lesson) {
     const position = await this.position(lesson)
     if (!position) return
+    if (position.type === 'drill') {
+      if (position.attempt) await this.advance(lesson, true)
+      return
+    }
     const answered = position.attempts.some((a) => a.layerId === position.step.id)
     if (!answered) return
     const isLast = position.steps.indexOf(position.step) === position.steps.length - 1
@@ -205,23 +300,33 @@ export default class LessonFlow {
   }
 
   async summary(lesson: Lesson): Promise<LessonSummary> {
-    const [bundles, attempts] = await Promise.all([
+    const [bundles, attempts, drillAttempts] = await Promise.all([
       this.catalog.bundles(lesson.problemIds),
       Attempt.query().where('lesson_id', lesson.id).preload('layer'),
+      DrillAttempt.query().where('lesson_id', lesson.id).orderBy('item_index'),
     ])
 
     const scores = new Map<string, LayerScore>()
-    for (const attempt of attempts) {
-      const kind = attempt.layer.kind
+    const count = (kind: string, outcome: Outcome) => {
       const score = scores.get(kind) ?? { kind, label: labelFor(kind), right: 0, total: 0 }
-      if (attempt.outcome !== 'skipped') {
+      if (outcome !== 'skipped') {
         score.total++
-        if (AnswerGrader.countsAsRight(attempt.outcome)) score.right++
+        if (AnswerGrader.countsAsRight(outcome)) score.right++
       }
       scores.set(kind, score)
     }
+    for (const attempt of attempts) count(attempt.layer.kind, attempt.outcome)
+    for (const attempt of drillAttempts) count(attempt.kind, attempt.outcome)
+
     const kindOrder = Object.keys(KIND_LABELS)
-    const rank = (kind: string) => (kindOrder.includes(kind) ? kindOrder.indexOf(kind) : 99)
+    const drillKinds: readonly string[] = DRILL_KINDS
+    // Known layer kinds, then custom ones, then the drills.
+    const rank = (kind: string) =>
+      drillKinds.includes(kind)
+        ? 200 + drillKinds.indexOf(kind)
+        : kindOrder.includes(kind)
+          ? kindOrder.indexOf(kind)
+          : 99
 
     return {
       lesson,
@@ -244,35 +349,58 @@ export default class LessonFlow {
   }
 
   /**
-   * What a "Report a problem" link points at: `step` ("<problem>.<step>",
-   * from the lesson page) or `problem` ("<problem>", from the summary). Only
-   * problems the player has reached, so the redirect can't be used to peek at
-   * the ids of problems still to come.
+   * What a "Report a problem" link points at: `step` ("<item>.<step>", from
+   * the lesson page) or `problem` (an index into the lesson's problems, from
+   * the summary). Only items the player has reached, so the redirect can't be
+   * used to peek at the ids of problems still to come.
    */
   async reportTarget(
     lesson: Lesson,
     input: { step?: unknown; problem?: unknown }
   ): Promise<ReportTarget | null> {
-    const [problemIndex, stepIndex] =
-      typeof input.step === 'string'
-        ? input.step.split('.').map(Number)
-        : [Number(input.problem), Number.NaN]
-    if (!Number.isInteger(problemIndex) || problemIndex < 0) return null
-    if (problemIndex >= lesson.problemIds.length) return null
-    if (!lesson.isDone && problemIndex > lesson.cursorProblem) return null
+    const reached = (itemIndex: number) =>
+      itemIndex >= 0 && (lesson.isDone || itemIndex <= lesson.cursorItem)
 
-    const problemId = lesson.problemIds[problemIndex]
-    if (!Number.isInteger(stepIndex)) return { problemId, layer: null }
+    if (typeof input.step !== 'string') {
+      const problemIndex = Number(input.problem)
+      const problemId = Number.isInteger(problemIndex) ? lesson.problemIds[problemIndex] : undefined
+      if (!problemId) return null
+      const itemIndex = lesson.items.findIndex((i) => i.type === 'problem' && i.id === problemId)
+      return reached(itemIndex) ? { type: 'problem', problemId, layer: null } : null
+    }
 
+    const [itemIndex, stepIndex] = input.step.split('.').map(Number)
+    const item = Number.isInteger(itemIndex) ? lesson.items[itemIndex] : undefined
+    if (!item || !reached(itemIndex)) return null
+
+    if (item.type === 'drill') {
+      const drill = await this.drill(lesson, itemIndex)
+      if (!drill) return null
+      return {
+        type: 'drill',
+        kind: drill.kind,
+        source: drill.drillItemId
+          ? `drills/${drill.drillItemId.replace(':', '.json → ')}`
+          : 'drills/big-o.json',
+        params: drill.params,
+      }
+    }
+
+    const problemId = item.id
+    if (!Number.isInteger(stepIndex)) return { type: 'problem', problemId, layer: null }
     const [taxonomy, bundle] = await Promise.all([
       this.catalog.taxonomy(),
       this.catalog.bundle(problemId),
     ])
     const layer = this.builder.steps(bundle, lesson.subjectIds, taxonomy)[stepIndex]
-    return { problemId, layer: layer ? layer.id.slice(problemId.length + 1) : null }
+    return {
+      type: 'problem',
+      problemId,
+      layer: layer ? layer.id.slice(problemId.length + 1) : null,
+    }
   }
 
-  protected question({ lesson, bundle, taxonomy, step, attempts }: Position): Question {
+  protected question({ lesson, bundle, taxonomy, step, attempts }: ProblemPosition): Question {
     const subjectAttempt = attempts.find((a) => a.layerId === `${bundle.problem.id}:subject`)
     return this.builder.build(step, {
       bundle,
@@ -284,37 +412,71 @@ export default class LessonFlow {
   }
 
   /**
-   * Where the cursor points. Null when the lesson is done.
+   * The drill at an item, rebuilt from its seed. Null when its content is gone.
    */
-  protected async position(lesson: Lesson): Promise<Position | null> {
-    if (lesson.isDone) return null
-    const problemId = lesson.problemIds[lesson.cursorProblem]
-    if (!problemId) return null
-
-    const [taxonomy, bundle, attempts] = await Promise.all([
-      this.catalog.taxonomy(),
-      this.catalog.bundle(problemId),
-      Attempt.query().where('lesson_id', lesson.id).where('problem_id', problemId),
+  protected async drill(lesson: Lesson, itemIndex: number): Promise<Drill | null> {
+    const item = lesson.items[itemIndex]
+    if (item?.type !== 'drill') return null
+    const [table, algorithm] = await Promise.all([
+      item.kind === 'algorithm-big-o' ? null : this.drillCatalog.table(),
+      item.algorithmId ? this.drillCatalog.algorithm(item.algorithmId) : null,
     ])
-    const steps = this.builder.steps(bundle, lesson.subjectIds, taxonomy)
-    // Content can change mid-lesson; never point past the last layer.
-    const step = steps[Math.min(lesson.cursorLayer, steps.length - 1)]
-    return { lesson, taxonomy, bundle, steps, step, attempts }
+    return this.drillBuilder.build(item.kind, {
+      table,
+      algorithm,
+      seed: `${lesson.id}:drill:${itemIndex}`,
+    })
   }
 
   /**
-   * The current position, only if `token` names the current layer and it
+   * Where the cursor points. Null when the lesson is done. A drill whose
+   * content left the repo is passed over.
+   */
+  protected async position(lesson: Lesson): Promise<Position | null> {
+    while (!lesson.isDone) {
+      const itemIndex = lesson.cursorItem
+      const item = lesson.items[itemIndex]
+      if (!item) return null
+
+      if (item.type === 'problem') {
+        const [taxonomy, bundle, attempts] = await Promise.all([
+          this.catalog.taxonomy(),
+          this.catalog.bundle(item.id),
+          Attempt.query().where('lesson_id', lesson.id).where('problem_id', item.id),
+        ])
+        const steps = this.builder.steps(bundle, lesson.subjectIds, taxonomy)
+        // Content can change mid-lesson; never point past the last layer.
+        const step = steps[Math.min(lesson.cursorLayer, steps.length - 1)]
+        return { type: 'problem', lesson, itemIndex, taxonomy, bundle, steps, step, attempts }
+      }
+
+      const drill = await this.drill(lesson, itemIndex)
+      if (drill) {
+        const attempt = await DrillAttempt.query()
+          .where('lesson_id', lesson.id)
+          .where('item_index', itemIndex)
+          .first()
+        return { type: 'drill', lesson, itemIndex, drill, attempt }
+      }
+      await this.advance(lesson, true)
+    }
+    return null
+  }
+
+  /**
+   * The current position, only if `token` names the current question and it
    * hasn't been answered yet.
    */
   protected async openPosition(lesson: Lesson, token: string) {
     const position = await this.position(lesson)
     if (!position || stepToken(position) !== token) return null
+    if (position.type === 'drill') return position.attempt ? null : position
     if (position.attempts.some((a) => a.layerId === position.step.id)) return null
     return position
   }
 
   protected async record(
-    { lesson, bundle, step }: Position,
+    { lesson, bundle, step }: ProblemPosition,
     outcome: Outcome,
     chosen: string | null,
     timed = true
@@ -327,7 +489,7 @@ export default class LessonFlow {
         problemId: bundle.problem.id,
         chosen,
         outcome,
-        msTaken: timed ? Math.round(-lesson.layerStartedAt.diffNow().as('milliseconds')) : null,
+        msTaken: timed ? msSince(lesson) : null,
       })
     } catch (error) {
       // Unique (lesson_id, layer_id): a concurrent submit already recorded it.
@@ -335,15 +497,40 @@ export default class LessonFlow {
     }
   }
 
-  protected async advance(lesson: Lesson, nextProblem: boolean) {
-    if (nextProblem) {
-      lesson.cursorProblem += 1
+  protected async recordDrill(
+    { lesson, itemIndex, drill }: DrillPosition,
+    outcome: Outcome,
+    chosen: string | null,
+    timed = true
+  ) {
+    try {
+      await DrillAttempt.create({
+        playerId: lesson.playerId,
+        lessonId: lesson.id,
+        itemIndex,
+        kind: drill.kind,
+        drillItemId: drill.drillItemId,
+        params: drill.params,
+        answer: drill.expected.id,
+        chosen,
+        outcome,
+        msTaken: timed ? msSince(lesson) : null,
+      })
+    } catch (error) {
+      // Unique (lesson_id, item_index): a concurrent submit already recorded it.
+      if (!String((error as Error).message).includes('UNIQUE')) throw error
+    }
+  }
+
+  protected async advance(lesson: Lesson, nextItem: boolean) {
+    if (nextItem) {
+      lesson.cursorItem += 1
       lesson.cursorLayer = 0
     } else {
       lesson.cursorLayer += 1
     }
     lesson.layerStartedAt = DateTime.now()
-    if (lesson.cursorProblem >= lesson.problemIds.length) {
+    if (lesson.cursorItem >= lesson.items.length) {
       lesson.status = 'done'
       lesson.finishedAt = DateTime.now()
     }
@@ -351,8 +538,19 @@ export default class LessonFlow {
   }
 }
 
-function stepToken({ lesson, steps, step }: Position) {
-  return `${lesson.cursorProblem}.${steps.indexOf(step)}`
+function msSince(lesson: Lesson) {
+  return Math.round(-lesson.layerStartedAt.diffNow().as('milliseconds'))
+}
+
+function stepToken(position: Position) {
+  const step = position.type === 'problem' ? position.steps.indexOf(position.step) : 0
+  return `${position.itemIndex}.${step}`
+}
+
+function mark(role: string, isPicked: boolean): Mark {
+  if (role === 'correct') return 'right'
+  if (role === 'overkill') return 'overkill'
+  return isPicked ? 'picked-wrong' : 'none'
 }
 
 function feedbackFor(question: Question, attempt: Attempt): Feedback {
@@ -361,19 +559,34 @@ function feedbackFor(question: Question, attempt: Attempt): Feedback {
     outcome: attempt.outcome,
     options: question.options.map((option) => {
       const isPicked = option.id === attempt.chosen
-      const mark =
-        option.role === 'correct'
-          ? 'right'
-          : option.role === 'overkill'
-            ? 'overkill'
-            : isPicked
-              ? 'picked-wrong'
-              : 'none'
-      return { id: option.id, text: option.text, mark, picked: isPicked }
+      return {
+        id: option.id,
+        text: option.text,
+        mark: mark(option.role, isPicked),
+        picked: isPicked,
+      }
     }),
     pickedWhy: picked?.why ?? null,
+    pickedWhyEs: picked?.whyEs ?? null,
     expectedText: question.expected.text,
     explanation: question.explanation,
+    explanationEs: question.explanationEs,
+  }
+}
+
+function drillFeedbackFor(drill: Drill, attempt: DrillAttempt): DrillFeedback {
+  return {
+    outcome: attempt.outcome,
+    options: drill.options.map((option) => {
+      const isPicked = option.id === attempt.chosen
+      return {
+        id: option.id,
+        text: option.text,
+        textKey: option.textKey,
+        mark: mark(option.role, isPicked),
+        picked: isPicked,
+      }
+    }),
   }
 }
 

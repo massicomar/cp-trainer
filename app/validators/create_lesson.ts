@@ -11,5 +11,7 @@ export const createLessonValidator = vine.compile(
     tiers: vine.array(vine.enum(TIERS)).minLength(1),
     // "official" leaves community-added problems out; anything else keeps them.
     problems: vine.enum(['official', 'all']).optional(),
+    // A hidden "off" plus the checkbox's "on" when ticked (SessionSelection.normalize).
+    drills: vine.any().optional(),
   })
 )

@@ -28,17 +28,31 @@ export default class SessionSelection {
    *
    * Community problems are included unless the form says `problems=official`
    * or a stored selection says `includeCommunity: false`.
+   *
+   * Drills are included unless the form says `drills=off` without `on` (the
+   * checkbox sits after a hidden "off", so a ticked box posts both) or a
+   * stored selection says `includeDrills: false`.
    */
   normalize(
-    input: { subjects?: unknown; tiers?: unknown; problems?: unknown; includeCommunity?: unknown },
+    input: {
+      subjects?: unknown
+      tiers?: unknown
+      problems?: unknown
+      includeCommunity?: unknown
+      drills?: unknown
+      includeDrills?: unknown
+    },
     visibleIds: string[]
   ): Selection {
     const subjects = new Set(asStrings(input.subjects))
     const tiers = new Set(asStrings(input.tiers))
+    const drills = asStrings(input.drills)
     return {
       subjects: visibleIds.filter((id) => subjects.has(id)),
       tiers: TIERS.filter((tier) => tiers.has(tier)),
       includeCommunity: input.problems !== 'official' && input.includeCommunity !== false,
+      includeDrills:
+        !(drills.includes('off') && !drills.includes('on')) && input.includeDrills !== false,
     }
   }
 
