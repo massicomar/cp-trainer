@@ -115,6 +115,47 @@ In the **content** repo on GitHub, add the secrets `DEPLOY_HOST`, `DEPLOY_USER` 
 
 If a sync fails validation, the workflow goes red and the database keeps the previous content. The same validation runs in the content repo's CI first, so this should only happen if the two drift apart.
 
+## 6. Backups
+
+Player history (players, lessons, attempts) is the only data that isn't in git. `node ace db:backup` copies the live database with SQLite's online backup (safe while the app runs), checks the copy's integrity, and deletes copies older than 14 days. The copies land in `backups/` inside the app folder, which compose mounts at `/backups`.
+
+**Once, on the VPS:**
+
+```bash
+cd ~/sites/cp-trainer/cp-trainer
+mkdir -p backups && chown 1000:1000 backups   # the container's `node` user writes here
+./scripts/backup.sh                             # try it once
+ls -lh backups/
+```
+
+**Every night at 03:15 (server time):**
+
+```bash
+echo '15 3 * * * root /root/sites/cp-trainer/cp-trainer/scripts/backup.sh >> /var/log/cp-trainer-backup.log 2>&1' \
+  > /etc/cron.d/cp-trainer-backup
+```
+
+Check it the next day with `tail /var/log/cp-trainer-backup.log` and `ls backups/`.
+
+**Optional, a copy off the VPS:** if the server dies, backups on it die too. From your Mac, now and then:
+
+```bash
+rsync -av root@v2202607382813484597.supersrv.de:/root/sites/cp-trainer/cp-trainer/backups/ ~/cp-trainer-backups/
+```
+
+**Restoring a backup** (stops the app for a few seconds):
+
+```bash
+cd ~/sites/cp-trainer/cp-trainer
+ls backups/                                       # pick one, e.g. app-2026-10-21T031500Z.db
+docker compose stop app
+docker compose run --rm --no-deps --entrypoint sh app -c \
+  'cp /backups/app-2026-10-21T031500Z.db /data/app.db && rm -f /data/app.db-wal /data/app.db-shm'
+docker compose start app
+```
+
+Removing the old `-wal` / `-shm` files matters: SQLite would otherwise replay them onto the restored copy. The content tables come back as they were in the backup, and the sync that runs when the app starts brings them up to date.
+
 ## Day to day
 
 ```bash
@@ -124,6 +165,7 @@ docker compose logs -f app
 ./scripts/deploy.sh                              # what the app workflow runs
 ./scripts/sync-content.sh                        # what the content workflow runs
 docker compose exec app node ace content:sync    # re-sync without pulling
+./scripts/backup.sh                              # a backup right now
 ```
 
 The container also syncs on every start. If that sync fails, the error is in `docker compose logs app` and the app starts anyway with the last good content.

@@ -25,3 +25,6 @@ yarn-error.log
 
 # Platform specific
 .DS_Store
+
+# Database backups (node ace db:backup, mounted at /backups in Docker)
+backups/

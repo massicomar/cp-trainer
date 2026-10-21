@@ -34,4 +34,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   CONTENT_INCLUDE_DRAFTS: Env.schema.boolean.optional(),
   // The content repo on GitHub, for "Report a problem" and the contribute page.
   CONTENT_REPO_URL: Env.schema.string.optional({ format: 'url', tld: true }),
+
+  // Backups (node ace db:backup). Defaults to tmp/backups locally; /backups in Docker.
+  BACKUP_DIR: Env.schema.string.optional(),
 })

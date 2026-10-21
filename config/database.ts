@@ -8,7 +8,7 @@ import { defineConfig } from '@adonisjs/lucid'
  * Absolute paths (the Docker volume, /data/app.db) are used as-is, relative
  * ones resolve against the app root.
  */
-const dbPath = resolve(fileURLToPath(app.appRoot), env.get('DB_PATH', 'tmp/db.sqlite3'))
+export const dbPath = resolve(fileURLToPath(app.appRoot), env.get('DB_PATH', 'tmp/db.sqlite3'))
 
 const dbConfig = defineConfig({
   /**

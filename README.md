@@ -16,15 +16,16 @@ npm run dev                                      # http://localhost:3333
 
 The dev database is `tmp/db.sqlite3`. Delete it to start over.
 
-| Command                                                       | What it does                                                       |
-| ------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `npm run dev`                                                 | dev server with hot reload                                         |
-| `node ace content:validate`                                   | check the content repo, no database writes (`--dir=…` for another) |
-| `node ace content:sync`                                       | validate, then copy the content into SQLite (all or nothing)       |
-| `npm test`                                                    | Japa tests (uses `tmp/test.sqlite3` and `tests/fixtures/content`)  |
-| `npm run fixtures:schema`                                     | copy the content repo's JSON Schemas into the test fixtures        |
-| `npm run typecheck` / `npm run lint` / `npm run format:check` | what CI runs                                                       |
-| `npm run build`                                               | production build into `build/`                                     |
+| Command                                                       | What it does                                                                                 |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `npm run dev`                                                 | dev server with hot reload                                                                   |
+| `node ace content:validate`                                   | check the content repo, no database writes (`--dir=…` for another)                           |
+| `node ace content:sync`                                       | validate, then copy the content into SQLite (all or nothing)                                 |
+| `node ace db:backup`                                          | copy the database to `tmp/backups` (in Docker: `backups/`), delete copies older than 14 days |
+| `npm test`                                                    | Japa tests (uses `tmp/test.sqlite3` and `tests/fixtures/content`)                            |
+| `npm run fixtures:schema`                                     | copy the content repo's JSON Schemas into the test fixtures                                  |
+| `npm run typecheck` / `npm run lint` / `npm run format:check` | what CI runs                                                                                 |
+| `npm run build`                                               | production build into `build/`                                                               |
 
 The content commands read `CONTENT_DIR`, which defaults to the sibling checkout `../cp-trainer-content`. When the content repo changes its schemas, run `npm run fixtures:schema`; a test fails until you do.
 

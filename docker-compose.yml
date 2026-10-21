@@ -17,8 +17,12 @@ services:
       PORT: 3333
       DB_PATH: /data/app.db
       CONTENT_DIR: /content
+      BACKUP_DIR: /backups
     volumes:
       - app_data:/data
+      # Nightly copies from `node ace db:backup` (scripts/backup.sh). On the VPS
+      # this folder must belong to uid 1000 (the container's `node` user).
+      - ./backups:/backups
       # The content repo checked out next to this one (on the VPS:
       # ~/sites/cp-trainer/cp-trainer-content). Override with CONTENT_PATH if it lives elsewhere.
       - ${CONTENT_PATH:-../cp-trainer-content}:/content:ro
