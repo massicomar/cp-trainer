@@ -1,3 +1,6 @@
+/* KaTeX's styles and fonts, for the math in statements (bundled by Vite). */
+@import 'katex/dist/katex.min.css';
+
 /*
  * Colors are light-dark(light, dark) pairs. Which half applies follows
  * `color-scheme`: both ("system", the OS decides) unless the header switch
@@ -364,6 +367,13 @@ h2 {
 .problem__summary {
   margin: 0 0 1rem;
   white-space: pre-line;
+}
+
+/* Wide formulas scroll sideways instead of overflowing on phones. */
+.katex-display {
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .badge {

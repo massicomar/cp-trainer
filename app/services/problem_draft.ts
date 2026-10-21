@@ -17,6 +17,8 @@ export interface DraftCheck {
 
 export interface DraftPreview {
   json: string
+  /** The statement, for showing it with its math rendered. */
+  statement: string
   /** Where the file goes in the content repo; null until there's an id and an intended subject. */
   path: string | null
   check: DraftCheck
@@ -215,6 +217,7 @@ export default class ProblemDraft {
     const name = `${problem.id || 'problem'}.json`
     return {
       json,
+      statement: problem.summary ?? '',
       path,
       check: await this.check(problem, editing),
       started: Boolean(problem.id || problem.title || problem.summary),

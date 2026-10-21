@@ -29,14 +29,14 @@
       <span class="badge">{{ t('messages.play.draft') }}</span>
     @end
     @if(play.problem.summaryMd)
-      <p class="problem__summary" lang="en">{{ play.problem.summaryMd }}</p>
+      <p class="problem__summary" lang="en">{{{ math(play.problem.summaryMd) }}}</p>
     @else
       <p class="problem__summary muted">{{ t('messages.play.noSummary') }}</p>
     @end
 
     <div class="constraints">
       <span class="constraints__label">{{ t('messages.play.constraints') }}</span>
-      <span lang="en">{{ play.problem.constraintsText }}</span>
+      <span lang="en">{{{ math(play.problem.constraintsText) }}}</span>
     </div>
   </article>
 
@@ -63,7 +63,7 @@
         <input type="hidden" name="step" value="{{ play.stepToken }}" />
         @each(option in play.question.options)
           <button type="submit" name="option" value="{{ option.id }}" class="option" lang="en">
-            {{ option.text }}
+            {{{ math(option.text) }}}
           </button>
         @end
       </form>
@@ -97,7 +97,7 @@
       <ul class="options options--answered">
         @each(option in play.feedback.options)
           <li class="option option--{{ option.mark }} {{ option.picked ? 'option--picked' : '' }}">
-            <span lang="en">{{ option.text }}</span>
+            <span lang="en">{{{ math(option.text) }}}</span>
             @if(option.picked)
               <span class="option__tag">{{ t('messages.play.yourAnswer') }}</span>
             @end
@@ -110,19 +110,19 @@
           <p class="verdict__title">{{ t('messages.play.verdict.correct') }}</p>
         @elseif(play.feedback.outcome === 'overkill')
           <p class="verdict__title">{{ t('messages.play.verdict.overkill') }}</p>
-          <p class="verdict__answer" lang="en">{{ play.feedback.expectedText }}</p>
+          <p class="verdict__answer" lang="en">{{{ math(play.feedback.expectedText) }}}</p>
         @elseif(play.feedback.outcome === 'wrong')
           <p class="verdict__title">{{ t('messages.play.verdict.wrong') }}</p>
-          <p class="verdict__answer" lang="en">{{ play.feedback.expectedText }}</p>
+          <p class="verdict__answer" lang="en">{{{ math(play.feedback.expectedText) }}}</p>
         @else
           <p class="verdict__title">{{ t('messages.play.verdict.gaveUp') }}</p>
-          <p class="verdict__answer" lang="en">{{ play.feedback.expectedText }}</p>
+          <p class="verdict__answer" lang="en">{{{ math(play.feedback.expectedText) }}}</p>
         @end
         @if(play.feedback.pickedWhy)
-          <p class="verdict__why" lang="en">{{ play.feedback.pickedWhy }}</p>
+          <p class="verdict__why" lang="en">{{{ math(play.feedback.pickedWhy) }}}</p>
         @end
         @if(play.feedback.explanation)
-          <p class="verdict__explanation" lang="en">{{ play.feedback.explanation }}</p>
+          <p class="verdict__explanation" lang="en">{{{ math(play.feedback.explanation) }}}</p>
         @end
       </div>
       @if(play.isLastStep)
@@ -139,7 +139,7 @@
             <p class="reveal__label">{{ t('messages.play.traps') }}</p>
             <ul class="traps" lang="en">
               @each(trap in play.problem.traps)
-                <li>{{ trap }}</li>
+                <li>{{{ math(trap) }}}</li>
               @end
             </ul>
           @end

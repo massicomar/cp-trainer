@@ -49,6 +49,12 @@
       </a>
     @end
   </div>
+  @if(preview.statement)
+    <h3>The statement as players see it</h3>
+    <div class="problem">
+      <p class="problem__summary" lang="en">{{{ math(preview.statement) }}}</p>
+    </div>
+  @end
 
   <pre class="json"><code id="preview-json">{{ preview.json }}</code></pre>
 </aside>
