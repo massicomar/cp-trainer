@@ -1,16 +1,21 @@
 {{-- Swapped by HTMX on every chip toggle; also rendered inside the setup form. --}}
 <div id="selection-count" class="start">
   @if(!complete)
-    <p class="muted">{{ t('messages.setup.count.incomplete') }}</p>
+    <p class="start__count muted">{{ t('messages.setup.count.incomplete') }}</p>
   @elseif(count === 0)
-    <p class="muted">{{ t('messages.setup.count.none') }}</p>
+    <p class="start__count muted">{{ t('messages.setup.count.none') }}</p>
   @elseif(count < lessonSize)
-    <p>{{ t('messages.setup.count.short', { count, size: lessonSize }) }}</p>
+    <p class="start__count">{{ t('messages.setup.count.short', { count, size: lessonSize }) }}</p>
   @else
-    <p>{{ t('messages.setup.count.full', { count, size: lessonSize }) }}</p>
+    <p class="start__count">{{ t('messages.setup.count.full', { count, size: lessonSize }) }}</p>
   @end
 
-  <button type="submit" class="button button--primary" {{ count === 0 ? 'disabled' : '' }}>
+  <button
+    type="submit"
+    class="button button--primary button--big"
+    {{ count === 0 ? 'disabled' : '' }}
+  >
     {{ t('messages.setup.start') }}
+    <span class="route-dots" aria-hidden="true"><span></span><span></span><span></span></span>
   </button>
 </div>

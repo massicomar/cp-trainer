@@ -28,8 +28,12 @@ interface PlayBase {
    * player look the original up from the page source.
    */
   stepToken: string
-  /** One entry per item of the lesson, drills marked. */
-  progress: { state: 'done' | 'current' | 'todo'; drill: boolean }[]
+  /**
+   * One entry per item of the lesson, drills marked. Finished problems carry
+   * their intended subject (the route colors them by line); others don't, so
+   * the page never shows a subject before it's been asked.
+   */
+  progress: { state: 'done' | 'current' | 'todo'; drill: boolean; subjectId: string | null }[]
   problemCount: number
   subjectNames: string[]
   isLastItem: boolean
@@ -101,6 +105,8 @@ export interface LessonSummary {
   scores: LayerScore[]
   problems: {
     problem: Problem
+    /** The intended subject, for the line badge. */
+    subjectId: string | null
     results: { kind: string; label: string; outcome: Outcome }[]
   }[]
 }
@@ -199,6 +205,10 @@ export default class LessonFlow {
     const cursor = lesson.cursorItem
     const isLastItem = cursor === lesson.items.length - 1
     const nextIsProblem = lesson.items[cursor + 1]?.type === 'problem'
+    const played = lesson.items
+      .slice(0, cursor)
+      .flatMap((item) => (item.type === 'problem' ? [item.id] : []))
+    const subjects = await this.catalog.intendedSubjects(played)
     const base = {
       lesson,
       stepToken: stepToken(position),
@@ -206,6 +216,7 @@ export default class LessonFlow {
         state:
           i < cursor ? ('done' as const) : i === cursor ? ('current' as const) : ('todo' as const),
         drill: item.type === 'drill',
+        subjectId: i < cursor && item.type === 'problem' ? (subjects.get(item.id) ?? null) : null,
       })),
       problemCount: lesson.problemIds.length,
       subjectNames: lesson.subjectIds.map((id) => taxonomy.subjectById.get(id)?.name ?? id),
@@ -336,6 +347,8 @@ export default class LessonFlow {
         .filter((bundle) => bundle !== undefined)
         .map((bundle) => ({
           problem: bundle.problem,
+          subjectId:
+            bundle.answers.find((a) => a.kind === 'subject' && a.role === 'intended')?.id ?? null,
           results: attempts
             .filter((a) => a.problemId === bundle.problem.id)
             .sort((a, b) => a.layer.position - b.layer.position)

@@ -1,19 +1,28 @@
 @layouts.main({ title: t('messages.summary.pageTitle') })
-  <h1>{{ t('messages.summary.heading') }}</h1>
-
+  <div class="page-head">
+    <h1>{{ t('messages.summary.heading') }}</h1>
+  </div>
+  {{-- Layers that were only skipped (0/0) say nothing; leave them out. --}}
   <ul class="scores">
-    @each(score in summary.scores)
+    @each(score in summary.scores.filter((s) => s.total > 0))
       <li class="score">
         <span class="score__label">{{ t(`messages.kinds.${score.kind}`, {}, score.label) }}</span>
         <strong class="score__value">{{ score.right }}/{{ score.total }}</strong>
+        <span class="score__bar" aria-hidden="true">
+          <span
+            style="width: {{ score.total ? Math.round((score.right / score.total) * 100) : 0 }}%"
+          ></span>
+        </span>
       </li>
     @end
   </ul>
 
   <ol class="results">
     @each((item, index) in summary.problems)
-      <li class="result">
+      @let(l = line(item.subjectId))
+      <li class="result line--{{ l.id }}">
         <h2 class="result__title">
+          <span class="line-badge" aria-hidden="true">{{ l.code }}</span>
           <a href="{{ item.problem.url }}" target="_blank" rel="noopener noreferrer">
             {{ item.problem.title }}
           </a>
@@ -64,8 +73,10 @@
   <div class="actions">
     <form method="post" action="/lessons/{{ summary.lesson.id }}/next">
       {{ csrfField() }}
-      <button type="submit" class="button button--primary">{{ t('messages.summary.next') }}</button>
+      <button type="submit" class="button button--primary button--big">
+        {{ t('messages.summary.next') }}
+      </button>
     </form>
-    <a class="button" href="{{ changeUrl }}">{{ t('messages.summary.change') }}</a>
+    <a class="button button--big" href="{{ changeUrl }}">{{ t('messages.summary.change') }}</a>
   </div>
 @end

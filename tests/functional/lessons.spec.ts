@@ -218,7 +218,7 @@ test.group('Playing a lesson', (group) => {
 
     const summary = await client.get(`/lessons/${lesson.id}/summary`).withCookie('pid', pid)
     summary.assertStatus(200)
-    summary.assertTextIncludes('Lesson results')
+    summary.assertTextIncludes('Round results')
     for (const id of lesson.problemIds) {
       const problem = await Problem.findOrFail(id)
       summary.assertTextIncludes(problem.title)
@@ -271,6 +271,10 @@ test.group('Playing a lesson', (group) => {
     const response = await htmx(client, pid, lesson, 'skip')
 
     response.assertTextIncludes('Problem 2 of 3')
+    // The finished stop on the route takes its subject's line color; the
+    // current one doesn't (that would answer its subject question).
+    assert.match(response.text(), /progress__step--done\s+line--[a-z-]+/)
+    assert.notMatch(response.text(), /progress__step--current\s+line--/)
     const attempts = await Attempt.query().where('lesson_id', lesson.id)
     assert.isAbove(attempts.length, 0)
     assert.isTrue(attempts.every((a) => a.problemId === first && a.outcome === 'skipped'))
@@ -279,6 +283,13 @@ test.group('Playing a lesson', (group) => {
   test('a refresh resumes at the same layer with the same options', async ({ client, assert }) => {
     const { pid, lesson } = await startLesson(client, ['dp', 'graphs'])
     const question = await currentQuestion(lesson)
+
+    // The first question shows no total: DP problems have more layers, so the
+    // total would answer the subject question (D-091).
+    const before = await client.get(`/lessons/${lesson.id}`).withCookie('pid', pid)
+    before.assertTextIncludes('Question 1')
+    assert.notInclude(before.text(), 'Question 1 of')
+
     await htmx(client, pid, lesson, 'answer', {
       step: question.step,
       option: question.options[0].id,

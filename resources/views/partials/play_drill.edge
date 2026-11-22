@@ -2,7 +2,10 @@
 @let(base = `/lessons/${play.lesson.id}`)
 @let(drill = play.drill)
 <section class="layer drill" aria-live="polite">
-  <h2 class="layer__prompt">{{{ math(t(drill.prompt.key, drill.prompt.params)) }}}</h2>
+  <div class="board board--drill">
+    <p class="board__step">{{ t('messages.drills.topic') }}</p>
+    <h2 class="layer__prompt">{{{ math(t(drill.prompt.key, drill.prompt.params)) }}}</h2>
+  </div>
   @if(!play.feedback)
     <form
       class="options {{ drill.kind === 'fits' ? 'options--pair' : '' }}"
@@ -16,11 +19,13 @@
       <input type="hidden" name="step" value="{{ play.stepToken }}" />
       @each(option in drill.options)
         <button type="submit" name="option" value="{{ option.id }}" class="option">
-          @if(option.textKey)
-            {{ t(option.textKey) }}
-          @else
-            {{{ math(option.text) }}}
-          @end
+          <span class="option__text">
+            @if(option.textKey)
+              {{ t(option.textKey) }}
+            @else
+              {{{ math(option.text) }}}
+            @end
+          </span>
         </button>
       @end
     </form>
@@ -53,9 +58,9 @@
       @each(option in play.feedback.options)
         <li class="option option--{{ option.mark }} {{ option.picked ? 'option--picked' : '' }}">
           @if(option.textKey)
-            <span>{{ t(option.textKey) }}</span>
+            <span class="option__text">{{ t(option.textKey) }}</span>
           @else
-            <span>{{{ math(option.text) }}}</span>
+            <span class="option__text">{{{ math(option.text) }}}</span>
           @end
           @if(option.picked)
             <span class="option__tag">{{ t('messages.play.yourAnswer') }}</span>
@@ -106,7 +111,7 @@
       hx-swap="outerHTML"
     >
       {{ csrfField() }}
-      <button type="submit" class="button button--primary button--wide" autofocus>
+      <button type="submit" class="button button--primary button--wide button--big" autofocus>
         {{ t(`messages.play.${play.next}`) }}
       </button>
     </form>

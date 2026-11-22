@@ -79,6 +79,22 @@ export default class Catalog {
     return bundles
   }
 
+  /**
+   * Each problem's intended subject, for coloring finished stops on the
+   * round's route. Only ask about problems already played: before the
+   * subject question, the color would give the answer away.
+   */
+  async intendedSubjects(problemIds: string[]): Promise<Map<string, string>> {
+    if (!problemIds.length) return new Map()
+    const rows = await db
+      .from('problem_answers')
+      .whereIn('problem_id', problemIds)
+      .where('kind', 'subject')
+      .where('role', 'intended')
+      .select('problem_id', 'answer_id')
+    return new Map(rows.map((row) => [row.problem_id, row.answer_id]))
+  }
+
   async bundle(problemId: string): Promise<ProblemBundle> {
     const bundles = await this.bundles([problemId])
     const bundle = bundles.get(problemId)

@@ -1,7 +1,10 @@
 @layouts.main({ title: t('messages.errors.server.title') })
-  <h1>{{ t('messages.errors.server.heading') }}</h1>
-  <p>
-    {{ t('messages.errors.server.body') }}
-    <a href="/">{{ t('messages.errors.server.back') }}</a>
-  </p>
+  <section class="error-sign error-sign--server">
+    <p class="error-sign__code" aria-hidden="true">500</p>
+    <h1>{{ t('messages.errors.server.heading') }}</h1>
+    <p>{{ t('messages.errors.server.body') }}</p>
+    <a class="button button--primary button--big" href="/">
+      {{ t('messages.errors.server.back') }}
+    </a>
+  </section>
 @end

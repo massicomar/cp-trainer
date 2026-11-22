@@ -4,32 +4,38 @@
 @let(prompt = generated
   ? t(`messages.play.prompts.${play.question.layer.kind}`)
   : play.question.prompt)
+{{--
+  No total on the first question (D-091): DP problems have 4 layers and the
+  rest 2, so "1 of 4" would answer the subject question.
+--}}
+@let(stepLabel =
+  play.stepNumber > 1
+    ? t('messages.play.questionOf', { number: play.stepNumber, count: play.stepCount })
+    : t('messages.play.questionNumber', { number: play.stepNumber }))
 <article class="problem">
-  @if(play.problem.status === 'draft')
-    <span class="badge">{{ t('messages.play.draft') }}</span>
-  @end
+  <p class="problem__label">
+    {{ t('messages.play.statement') }}
+    @if(play.problem.status === 'draft')
+      <span class="badge">{{ t('messages.play.draft') }}</span>
+    @end
+  </p>
   @if(play.problem.summaryMd)
-    <p class="problem__summary" lang="en">{{{ math(play.problem.summaryMd) }}}</p>
+    <div class="problem__summary" lang="en">{{{ math(play.problem.summaryMd) }}}</div>
   @else
     <p class="problem__summary muted">{{ t('messages.play.noSummary') }}</p>
   @end
 
   <div class="constraints">
     <span class="constraints__label">{{ t('messages.play.constraints') }}</span>
-    <span lang="en">{{{ math(play.problem.constraintsText) }}}</span>
+    <span class="constraints__text" lang="en">{{{ math(play.problem.constraintsText) }}}</span>
   </div>
 </article>
 
 <section class="layer" aria-live="polite">
-  <p class="layer__step">
-    {{
-      t('messages.play.questionOf', {
-        number: play.stepNumber,
-        count: play.stepCount,
-      })
-    }}
-  </p>
-  <h2 class="layer__prompt" lang="{{ generated ? i18n.locale : 'en' }}">{{ prompt }}</h2>
+  <div class="board">
+    <p class="board__step">{{ stepLabel }}</p>
+    <h2 class="layer__prompt" lang="{{ generated ? i18n.locale : 'en' }}">{{ prompt }}</h2>
+  </div>
   @if(!play.feedback)
     <form
       class="options"
@@ -43,7 +49,7 @@
       <input type="hidden" name="step" value="{{ play.stepToken }}" />
       @each(option in play.question.options)
         <button type="submit" name="option" value="{{ option.id }}" class="option" lang="en">
-          {{{ math(option.text) }}}
+          <span class="option__text">{{{ math(option.text) }}}</span>
         </button>
       @end
     </form>
@@ -75,7 +81,7 @@
     <ul class="options options--answered">
       @each(option in play.feedback.options)
         <li class="option option--{{ option.mark }} {{ option.picked ? 'option--picked' : '' }}">
-          <span lang="en">{{{ math(option.text) }}}</span>
+          <span class="option__text" lang="en">{{{ math(option.text) }}}</span>
           @if(option.picked)
             <span class="option__tag">{{ t('messages.play.yourAnswer') }}</span>
           @end
@@ -146,7 +152,7 @@
       hx-swap="outerHTML"
     >
       {{ csrfField() }}
-      <button type="submit" class="button button--primary button--wide" autofocus>
+      <button type="submit" class="button button--primary button--wide button--big" autofocus>
         {{ t(`messages.play.${play.next}`) }}
       </button>
     </form>

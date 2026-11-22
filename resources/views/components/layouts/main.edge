@@ -2,49 +2,70 @@
   Page shell for every screen. HTMX requests carry the CSRF token through
   hx-headers so Shield accepts them. `theme` and `i18n` are shared by
   middleware; error pages rendered outside the router fall back to defaults.
+  The look is the Metro direction (D-103): a navy header, subjects as lines.
 --}}
 @let(pageTitle = $props.get('title'))
 @let(currentTheme = theme || 'system')
+@let(path = request ? request.url() : '')
 <!DOCTYPE html>
 <html lang="{{ i18n.locale }}" data-theme="{{ currentTheme }}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>{{ pageTitle ? `${pageTitle} · CP Trainer` : 'CP Trainer' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
-  <body hx-headers='{"x-csrf-token": "{{ csrfToken }}"}'>
+  <body hx-headers='{"x-csrf-token": "{{ csrfToken ?? '' }}"}'>
     <header class="site-header">
-      <a href="/" class="brand">CP Trainer</a>
-      <nav class="site-nav"><a href="/contribute">{{ t('messages.nav.contribute') }}</a></nav>
-      <form class="switches" method="post" action="/preferences">
-        {{ csrfField() }}
-        <div class="switch" role="group" aria-label="{{ t('messages.theme.label') }}">
-          @each(option in ['system', 'light', 'dark'])
-            <button
-              type="submit"
-              name="theme"
-              value="{{ option }}"
-              aria-pressed="{{ currentTheme === option }}"
-            >
-              {{ t(`messages.theme.${option}`) }}
-            </button>
-          @end
-        </div>
-        <div class="switch" role="group" aria-label="{{ t('messages.language.label') }}">
-          @each(option in ['en', 'es'])
-            <button
-              type="submit"
-              name="locale"
-              value="{{ option }}"
-              aria-pressed="{{ i18n.locale === option }}"
-              lang="{{ option }}"
-            >
-              {{ option.toUpperCase() }}
-            </button>
-          @end
-        </div>
-      </form>
+      <div class="site-header__inner">
+        <a href="/" class="brand">
+          <span class="brand__mark" aria-hidden="true">CP</span>
+          CP Trainer
+        </a>
+        <nav class="site-nav" aria-label="{{ t('messages.nav.label') }}">
+          <a href="/" {{ path === '/' ? 'aria-current=page' : '' }}>
+            {{ t('messages.setup.pageTitle') }}
+          </a>
+          <a href="/contribute" {{ path.startsWith('/contribute') ? 'aria-current=page' : '' }}>
+            {{ t('messages.nav.contribute') }}
+          </a>
+        </nav>
+        {{--
+          Unmatched URLs skip the router middleware, so 404 pages have no CSRF
+          helper and no switches.
+        --}}
+        @if(csrfField)
+          <form class="switches" method="post" action="/preferences">
+            {{ csrfField() }}
+            <div class="switch" role="group" aria-label="{{ t('messages.theme.label') }}">
+              @each(option in ['system', 'light', 'dark'])
+                <button
+                  type="submit"
+                  name="theme"
+                  value="{{ option }}"
+                  aria-pressed="{{ currentTheme === option }}"
+                >
+                  {{ t(`messages.theme.${option}`) }}
+                </button>
+              @end
+            </div>
+            <div class="switch" role="group" aria-label="{{ t('messages.language.label') }}">
+              @each(option in ['en', 'es'])
+                <button
+                  type="submit"
+                  name="locale"
+                  value="{{ option }}"
+                  aria-pressed="{{ i18n.locale === option }}"
+                  lang="{{ option }}"
+                >
+                  {{ option.toUpperCase() }}
+                </button>
+              @end
+            </div>
+          </form>
+        @end
+      </div>
     </header>
     <main class="container">{{{ await $slots.main() }}}</main>
   </body>

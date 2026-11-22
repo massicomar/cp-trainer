@@ -1,7 +1,10 @@
 @layouts.main({ title: t('messages.errors.notFound.title') })
-  <h1>{{ t('messages.errors.notFound.heading') }}</h1>
-  <p>
-    {{ t('messages.errors.notFound.body') }}
-    <a href="/">{{ t('messages.errors.notFound.back') }}</a>
-  </p>
+  <section class="error-sign">
+    <p class="error-sign__code" aria-hidden="true">404</p>
+    <h1>{{ t('messages.errors.notFound.heading') }}</h1>
+    <p>{{ t('messages.errors.notFound.body') }}</p>
+    <a class="button button--primary button--big" href="/">
+      {{ t('messages.errors.notFound.back') }}
+    </a>
+  </section>
 @end

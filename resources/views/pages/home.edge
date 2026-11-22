@@ -1,6 +1,8 @@
 @layouts.main({ title: t('messages.setup.pageTitle') })
-  <h1>{{ t('messages.setup.heading') }}</h1>
-  <p class="muted">{{ t('messages.setup.intro', { size: lessonSize }) }}</p>
+  <div class="page-head">
+    <h1>{{ t('messages.setup.heading') }}</h1>
+    <p class="muted">{{ t('messages.setup.intro', { size: lessonSize }) }}</p>
+  </div>
 
   @flashMessage('error')
     <p class="notice notice--error" role="alert">{{ $message }}</p>
@@ -8,11 +10,12 @@
 
   {{--
     Toggling a chip refreshes the match count (HTMX GET on change).
-    Start submits the form normally.
+    Start submits the form normally. Every control is a real checkbox or
+    radio, so the page works without JavaScript.
   --}}
   <form
     id="setup"
-    class="setup"
+    class="setup card"
     method="post"
     action="/lessons"
     hx-get="/selection/count"
@@ -21,27 +24,28 @@
     hx-swap="outerHTML"
   >
     {{ csrfField() }}
+    <h2 class="setup__title">{{ t('messages.setup.build') }}</h2>
 
-    <fieldset class="setup__group">
-      <legend>{{ t('messages.setup.subjects') }}</legend>
-      <div class="presets">
-        <button type="button" class="link-button" data-preset-subjects="{{ presets.all }}">
+    <div class="setup__group">
+      <p class="label" id="presets-label">{{ t('messages.setup.presetsLabel') }}</p>
+      <div class="presets" role="group" aria-labelledby="presets-label">
+        <button type="button" class="preset" data-preset-subjects="{{ presets.all }}">
           {{ t('messages.setup.presets.all') }}
         </button>
         @each(module in presets.modules)
-          <button type="button" class="link-button" data-preset-subjects="{{ module.subjects }}">
+          <button type="button" class="preset" data-preset-subjects="{{ module.subjects }}">
             {{ t(`messages.setup.presets.${module.key}`) }}
           </button>
         @end
         @if(presets.dp)
-          <button type="button" class="link-button" data-preset-subjects="{{ presets.dp }}">
+          <button type="button" class="preset" data-preset-subjects="{{ presets.dp }}">
             {{ t('messages.setup.presets.dp') }}
           </button>
         @end
         @if(presets.last)
           <button
             type="button"
-            class="link-button"
+            class="preset"
             data-preset-subjects="{{ presets.last.subjects.join(',') }}"
             data-preset-tiers="{{ presets.last.tiers.join(',') }}"
             data-preset-problems="{{ presets.last.includeCommunity ? 'all' : 'official' }}"
@@ -51,16 +55,26 @@
           </button>
         @end
       </div>
-      <div class="chips">
+    </div>
+
+    <fieldset class="setup__group">
+      <legend class="label">{{ t('messages.setup.subjects') }}</legend>
+      <div class="lines">
         @each(subject in subjects)
-          <label class="chip">
+          @let(l = line(subject.id))
+          <label class="line-card line--{{ l.id }}">
             <input
               type="checkbox"
               name="subjects[]"
               value="{{ subject.id }}"
               {{ current.subjects.includes(subject.id) ? 'checked' : '' }}
             />
-            <span>{{ subject.name }} <small>{{ perSubject[subject.id] ?? 0 }}</small></span>
+            <span class="line-badge" aria-hidden="true">{{ l.code }}</span>
+            <span class="line-card__text">
+              <span class="line-card__name">{{ subject.name }}</span>
+              <small>{{ t('messages.setup.subjectCount', { count: perSubject[subject.id] ?? 0 }) }}</small>
+            </span>
+            <span class="line-card__check" aria-hidden="true"></span>
           </label>
         @end
       </div>
@@ -69,54 +83,55 @@
       @end
     </fieldset>
 
-    <fieldset class="setup__group">
-      <legend>{{ t('messages.setup.difficulty') }}</legend>
-      <div class="chips">
-        @each(tier in tiers)
-          <label class="chip">
-            <input
-              type="checkbox"
-              name="tiers[]"
-              value="{{ tier }}"
-              {{ current.tiers.includes(tier) ? 'checked' : '' }}
-            />
-            <span>{{ t(`messages.tiers.${tier}`) }}</span>
-          </label>
+    <div class="setup__row">
+      <fieldset class="setup__group">
+        <legend class="label">{{ t('messages.setup.difficulty') }}</legend>
+        <div class="segmented">
+          @each(tier in tiers)
+            <label class="segmented__item">
+              <input
+                type="checkbox"
+                name="tiers[]"
+                value="{{ tier }}"
+                {{ current.tiers.includes(tier) ? 'checked' : '' }}
+              />
+              <span>{{ t(`messages.tiers.${tier}`) }}</span>
+            </label>
+          @end
+        </div>
+        @inputError('tiers')
+          <p class="field-error">{{ t('messages.setup.errors.tiers') }}</p>
         @end
-      </div>
-      @inputError('tiers')
-        <p class="field-error">{{ t('messages.setup.errors.tiers') }}</p>
-      @end
-    </fieldset>
+      </fieldset>
 
-    <fieldset class="setup__group">
-      <legend>{{ t('messages.setup.problems') }}</legend>
-      <div class="chips">
-        @each(option in ['all', 'official'])
-          <label class="chip">
-            <input
-              type="radio"
-              name="problems"
-              value="{{ option }}"
-              {{ (option === 'all') === current.includeCommunity ? 'checked' : '' }}
-            />
-            <span>{{ t(`messages.setup.collections.${option}`) }}</span>
-          </label>
-        @end
-      </div>
-    </fieldset>
+      <fieldset class="setup__group">
+        <legend class="label">{{ t('messages.setup.problems') }}</legend>
+        <div class="segmented">
+          @each(option in ['all', 'official'])
+            <label class="segmented__item">
+              <input
+                type="radio"
+                name="problems"
+                value="{{ option }}"
+                {{ (option === 'all') === current.includeCommunity ? 'checked' : '' }}
+              />
+              <span>{{ t(`messages.setup.collections.${option}`) }}</span>
+            </label>
+          @end
+        </div>
+      </fieldset>
 
-    <fieldset class="setup__group">
-      <legend>{{ t('messages.setup.drills.legend') }}</legend>
-      <div class="chips">
+      <fieldset class="setup__group">
+        <legend class="label">{{ t('messages.setup.drills.legend') }}</legend>
         {{-- Unticked, only "off" is sent; ticked, both (SessionSelection.normalize). --}}
         <input type="hidden" name="drills" value="off" />
-        <label class="chip">
+        <label class="toggle">
           <input type="checkbox" name="drills" value="on" {{ current.includeDrills ? 'checked' : '' }} />
+          <span class="toggle__track" aria-hidden="true"></span>
           <span>{{ t('messages.setup.drills.include') }}</span>
         </label>
-      </div>
-    </fieldset>
+      </fieldset>
+    </div>
 
     @include('partials/selection_count')
   </form>

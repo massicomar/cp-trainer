@@ -1,24 +1,33 @@
 {{--
-  The whole lesson area. Every form posts normally (works without JS) and
-  HTMX swaps this element with the server's response.
+  The whole round area. Every form posts normally (works without JS) and
+  HTMX swaps this element with the server's response. The progress bar is the
+  round's route: finished problems take their subject's line color.
 --}}
 @let(meta =
   play.type === 'drill'
     ? t('messages.drills.label')
     : t('messages.play.problemOf', { number: play.problemNumber, count: play.problemCount }))
-<div id="play" class="play">
+<div id="play" class="play play--{{ play.type }}">
   <header class="play__top">
     <ol class="progress" aria-label="{{ meta }}">
       @each(step in play.progress)
         <li
-          class="progress__step progress__step--{{ step.state }} {{ step.drill ? 'progress__step--drill' : '' }}"
+          class="progress__step progress__step--{{ step.state }} {{ step.drill ? 'progress__step--drill' : '' }} {{ step.subjectId ? `line--${step.subjectId}` : '' }}"
         ></li>
       @end
     </ol>
-    <p class="play__meta">
-      {{ meta }}
-      <span class="pill">{{ play.subjectNames.join(' · ') }}</span>
-    </p>
+    <div class="play__meta">
+      <span class="play__count">{{ meta }}</span>
+      <span class="play__lines">
+        @each((name, i) in play.subjectNames)
+          @let(l = line(play.lesson.subjectIds[i]))
+          <span class="line-badge line-badge--small line--{{ l.id }}" title="{{ name }}">
+            {{ l.code }}
+          </span>
+          <span class="visually-hidden">{{ name }}</span>
+        @end
+      </span>
+    </div>
   </header>
   @if(play.type === 'drill')
     @include('partials/play_drill')

@@ -21,7 +21,7 @@ test.group('Language and theme', (group) => {
 
     response.assertTextIncludes('<html lang="es"')
     response.assertTextIncludes('¿Qué quieres practicar?')
-    response.assertTextIncludes('Empezar lección')
+    response.assertTextIncludes('Empezar ronda')
   })
 
   test('the language switch wins over the browser', async ({ client }) => {
