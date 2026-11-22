@@ -50,6 +50,9 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      # Access log and the visits report (D-101): scripts/stats-report.sh ./logs ./stats/cp-trainer
+      - ./logs:/var/log/caddy
+      - ./stats:/srv/stats:ro
     networks: [web-network]
     depends_on: [app]
 

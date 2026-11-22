@@ -5,5 +5,29 @@
 # Caddy's own CA; accept the browser warning once).
 {$APP_URL} {
 	encode zstd gzip
-	reverse_proxy cp-trainer:3333
+
+	# Access log for the visits report (D-101), read by scripts/stats-report.sh.
+	# The VPS block in docs/deploy.md ("Analytics") is the same plus a password.
+	# Cookie and Authorization headers are never logged (Caddy redacts them).
+	log {
+		output file /var/log/caddy/cp-trainer.log {
+			roll_size 1MiB
+			roll_uncompressed
+			roll_keep_for 720h
+		}
+		format json
+	}
+	log_skip /health
+	log_skip /_stats*
+
+	# The report itself. Locally it's open; on the VPS it's behind basic_auth.
+	redir /_stats /_stats/
+	handle_path /_stats/* {
+		root * /srv/stats/cp-trainer
+		file_server
+	}
+
+	handle {
+		reverse_proxy cp-trainer:3333
+	}
 }

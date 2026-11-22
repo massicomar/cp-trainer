@@ -37,4 +37,8 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // Backups (node ace db:backup). Defaults to tmp/backups locally; /backups in Docker.
   BACKUP_DIR: Env.schema.string.optional(),
+
+  // Time zone that cuts days in `node ace stats` (an IANA name). Defaults to UTC.
+  // The stored timestamps stay in UTC either way (TZ above).
+  APP_TIMEZONE: Env.schema.string.optional(),
 })

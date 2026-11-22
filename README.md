@@ -23,6 +23,7 @@ The dev database is `tmp/db.sqlite3`. Delete it to start over.
 | `node ace content:sync`                                       | validate, then copy the content into SQLite (all or nothing)                                                                  |
 | `node ace content:fetch-statements`                           | copy statements from CSES / AtCoder / Kattis into empty `summary` fields of the content repo files (`--only=id,…`, `--force`) |
 | `node ace db:backup`                                          | copy the database to `tmp/backups` (in Docker: `backups/`), delete copies older than 14 days                                  |
+| `node ace stats`                                              | players, rounds and answers per day (`--days=30`, `--tz=…` or `APP_TIMEZONE`, `--all-days`)                                   |
 | `npm test`                                                    | Japa tests (uses `tmp/test.sqlite3` and `tests/fixtures/content`)                                                             |
 | `npm run fixtures:schema`                                     | copy the content repo's JSON Schemas into the test fixtures                                                                   |
 | `npm run typecheck` / `npm run lint` / `npm run format:check` | what CI runs                                                                                                                  |
@@ -74,6 +75,8 @@ docker compose --profile local down -v     # stop and delete the database too
 ```
 
 Compose mounts `../cp-trainer-content` read-only at `/content`. Set `CONTENT_PATH` if your checkout lives elsewhere.
+
+The local Caddy also writes the access log to `./logs`. `scripts/stats-report.sh ./logs ./stats/cp-trainer` turns it into the visits report at <https://localhost/_stats/> (on the VPS: hourly, behind a password; see [docs/deploy.md](docs/deploy.md), "Analytics").
 
 ## Deploying
 

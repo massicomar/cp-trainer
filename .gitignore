@@ -28,3 +28,7 @@ yarn-error.log
 
 # Database backups (node ace db:backup, mounted at /backups in Docker)
 backups/
+
+# Local-profile Caddy access log and the visits report (scripts/stats-report.sh)
+logs/
+stats/

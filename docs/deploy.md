@@ -156,6 +156,101 @@ docker compose start app
 
 Removing the old `-wal` / `-shm` files matters: SQLite would otherwise replay them onto the restored copy. The content tables come back as they were in the backup, and the sync that runs when the app starts brings them up to date.
 
+## 7. Analytics
+
+Two sources, nothing third-party and no tracking script (D-101):
+
+- **Visits:** the shared Caddy writes an access log for this site, and GoAccess turns it into a report every hour at `https://cp.massi.com.ar/_stats/`, behind a password. It counts people who look and leave too.
+- **Play:** `node ace stats` counts players, rounds and answers per day from the app's own database.
+
+**Once, on the VPS:**
+
+1. Give the shared Caddy a folder for the log and one for the report. In `~/sites/caddy`'s compose file, add two volumes to the `caddy` service:
+
+   ```yaml
+   volumes:
+     # …the ones it already has…
+     - ./logs:/var/log/caddy
+     - ./stats:/srv/stats:ro
+   ```
+
+   ```bash
+   cd ~/sites/caddy
+   mkdir -p logs stats/cp-trainer
+   docker compose up -d caddy        # a new mount needs a recreate, not just a reload
+   ```
+
+2. Pick the password for the report and get its hash:
+
+   ```bash
+   docker exec -it caddy caddy hash-password
+   ```
+
+3. Replace the `cp.massi.com.ar` block in `~/sites/caddy/Caddyfile` with this one, putting your user name and the hash in `basic_auth`:
+
+   ```
+   cp.massi.com.ar {
+   	encode zstd gzip
+
+   	log {
+   		output file /var/log/caddy/cp-trainer.log {
+   			roll_size 1MiB
+   			roll_uncompressed
+   			roll_keep_for 720h
+   		}
+   		format json
+   	}
+   	log_skip /health
+   	log_skip /_stats*
+
+   	redir /_stats /_stats/
+   	handle_path /_stats/* {
+   		basic_auth {
+   			<user> <hash>
+   		}
+   		root * /srv/stats/cp-trainer
+   		file_server
+   	}
+
+   	handle {
+   		reverse_proxy cp-trainer:3333
+   	}
+   }
+   ```
+
+   ```bash
+   docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+   ```
+
+   Only this block logs; your other sites don't change. `log_skip`, `basic_auth` and `roll_uncompressed` need Caddy 2.8 or newer (`docker exec caddy caddy version`).
+
+4. Build the report once, then every hour:
+
+   ```bash
+   cd ~/sites/cp-trainer/cp-trainer
+   ./scripts/stats-report.sh        # "no access log yet" is fine until someone visits
+   echo '0 * * * * root /root/sites/cp-trainer/cp-trainer/scripts/stats-report.sh >> /var/log/cp-trainer-stats.log 2>&1' \
+     > /etc/cron.d/cp-trainer-stats
+   ```
+
+The script runs GoAccess in a throwaway container (`allinurl/goaccess`), so nothing stays running. GoAccess keeps its totals in `~/sites/caddy/stats/cp-trainer/db`, which is why the history outlives the raw log.
+
+**What the report shows:** visitors and requests per day, pages, where people came from, browsers, systems and devices, hours, and 404s. Bots and CSS / JS / font requests aren't counted, and IPs are stored anonymized. There are no countries: that needs a GeoIP database.
+
+**Privacy:** the raw log keeps full IPs and browsers for about 30 days. Caddy rotates the file at 1 MiB and deletes rotated copies after 30 days. Caddy never writes the `Cookie` or `Authorization` headers to the log, so neither the `pid` cookie nor the report's password ends up there.
+
+**Usage numbers:**
+
+```bash
+docker compose exec app node ace stats                  # the last 30 days
+docker compose exec app node ace stats --days 7 --all-days
+docker compose exec app node ace stats --tz America/Mexico_City
+```
+
+Days are cut in UTC unless you pass `--tz` or set `APP_TIMEZONE` in `.env.docker` (any IANA name). It lists, per day: new players, players who answered something ("Played"), rounds started and finished, and answers. Then it prints totals for the range, all-time players and finished rounds, and rounds per subject.
+
+**Locally:** `docker compose --profile local up -d --build` writes the same log to `./logs`. Browse a bit at `https://localhost`, then run `scripts/stats-report.sh ./logs ./stats/cp-trainer` and open `https://localhost/_stats/` (no password locally). Docker Desktop has to be running for both.
+
 ## Day to day
 
 ```bash
@@ -166,6 +261,8 @@ docker compose logs -f app
 ./scripts/sync-content.sh                        # what the content workflow runs
 docker compose exec app node ace content:sync    # re-sync without pulling
 ./scripts/backup.sh                              # a backup right now
+docker compose exec app node ace stats           # players, rounds and answers per day
+./scripts/stats-report.sh                        # rebuild the /_stats/ report now
 ```
 
 The container also syncs on every start. If that sync fails, the error is in `docker compose logs app` and the app starts anyway with the last good content.
