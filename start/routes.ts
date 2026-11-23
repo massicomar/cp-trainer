@@ -9,11 +9,13 @@
 
 import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
+import { middleware } from '#start/kernel'
 
 router.get('/', [controllers.Home, 'show']).as('home')
 router.get('/selection/count', [controllers.Home, 'count']).as('selection.count')
 
 router.post('/lessons', [controllers.Lessons, 'store']).as('lessons.store')
+router.post('/custom', [controllers.Lessons, 'custom']).as('custom.store').use(middleware.auth())
 router
   .group(() => {
     router.get('/', [controllers.Lessons, 'show']).as('lessons.show')
@@ -33,5 +35,18 @@ router.post('/contribute', [controllers.Contribute, 'preview']).as('contribute.p
 router.post('/contribute/import', [controllers.Contribute, 'import']).as('contribute.import')
 
 router.post('/preferences', [controllers.Preferences, 'update']).as('preferences.update')
+
+// Accounts (plan §12.9)
+router.get('/entrar', [controllers.Auth, 'show']).as('auth.show')
+router.get('/auth/github', [controllers.Auth, 'github']).as('auth.github')
+router.get('/auth/github/callback', [controllers.Auth, 'callback']).as('auth.github.callback')
+router.post('/auth/dev', [controllers.Auth, 'dev']).as('auth.dev')
+router.post('/logout', [controllers.Auth, 'logout']).as('auth.logout')
+router
+  .group(() => {
+    router.get('/cuenta', [controllers.Account, 'show']).as('account.show')
+    router.post('/cuenta/borrar', [controllers.Account, 'destroy']).as('account.destroy')
+  })
+  .use(middleware.auth())
 
 router.get('/health', [controllers.Health, 'show']).as('health')

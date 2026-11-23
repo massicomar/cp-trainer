@@ -33,13 +33,15 @@ The content commands read `CONTENT_DIR`, which defaults to the sibling checkout 
 
 `content:fetch-statements` writes the JSON files in the content checkout; review the diff and open a PR there. Codeforces and SPOJ block automatic fetching: `--snippet` writes `tmp/statements-snippet.js` to paste into the browser console on those sites, which downloads a JSON file of the pages; `--from=<that file>` fills the summaries from it.
 
+**Accounts:** with `AUTH_DEV_LOGIN=true` in `.env`, `/entrar` has a "Sign in without GitHub" form (any username), so you can try the account home and Custom without a GitHub OAuth app. GitHub sign-in needs `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (`docs/deploy.md` §8).
+
 Sessions only use `ready` problems. To play drafts too, set `CONTENT_INCLUDE_DRAFTS=true` in `.env` to play them anyway (drafts show a "Draft" badge).
 
 ### Where things are
 
 | Path                                   | What                                                                                             |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `app/services/session_selection.ts`    | subjects + tiers → matching problems, counts                                                     |
+| `app/services/session_selection.ts`    | subjects + tiers (+ Custom: subtopics, short questions) → matching problems, counts              |
 | `app/services/lesson_planner.ts`       | picks a lesson's problems (round-robin, unseen first, pairs, distractor cap)                     |
 | `app/services/question_builder.ts`     | which layers a problem asks, and each layer's options                                            |
 | `app/services/answer_grader.ts`        | option → correct / overkill / wrong                                                              |
@@ -47,7 +49,8 @@ Sessions only use `ready` problems. To play drafts too, set `CONTENT_INCLUDE_DRA
 | `app/services/drill_builder.ts`        | quick questions (drills): Big O cases, the arithmetic behind them, algorithm drills              |
 | `app/services/drill_planner.ts`        | where drills go in a lesson and which kind each one is                                           |
 | `app/services/statement_extractors.ts` | judge pages → statement, title, constraints (`/contribute`, `content:fetch-statements`)          |
-| `app/middleware/player_middleware.ts`  | anonymous player from the signed `pid` cookie                                                    |
+| `app/middleware/player_middleware.ts`  | who plays: the account's player when signed in, else the signed `pid` cookie                     |
+| `app/services/accounts.ts`             | GitHub / dev sign-in, claiming and merging the anonymous history, deleting an account            |
 | `resources/views/partials/play.edge`   | the lesson area that HTMX swaps after every action                                               |
 | `app/services/problem_draft.ts`        | `/contribute`: form → problem file, with CI's checks                                             |
 | `app/services/content_rules.ts`        | URL allowlist + leak lint, copied from the content repo's validator (keep in sync)               |

@@ -1,7 +1,10 @@
 {
   "nav": {
     "contribute": "Contribute",
-    "label": "Main"
+    "label": "Main",
+    "home": "Home",
+    "signIn": "Sign in",
+    "account": "Your account"
   },
   "theme": {
     "label": "Theme",
@@ -50,7 +53,11 @@
     },
     "build": "Build your round",
     "subjectCount": "{count, plural, one {# problem} other {# problems}}",
-    "presetsLabel": "Shortcuts"
+    "presetsLabel": "Shortcuts",
+    "account": {
+      "body": "With an account your rounds are saved on any device, and you get Custom: subtopics and short questions only. Soon: lessons one subject at a time.",
+      "link": "Sign in"
+    }
   },
   "tiers": {
     "easy": "Easy",
@@ -103,7 +110,8 @@
       "fits": "With {bound}, {complexity} is {calc} operations, which fits.",
       "aboutTheLimit": "With {bound}, {complexity} is {calc} operations, about the limit.",
       "tooMany": "With {bound}, {complexity} would be {calc} operations, far too many."
-    }
+    },
+    "numberOf": "Quick question {number} of {count}"
   },
   "summary": {
     "pageTitle": "Round results",
@@ -279,6 +287,96 @@
       "heading": "Something went wrong",
       "body": "The server hit an error. Try again, or go back to the start.",
       "back": "Back to the start"
+    }
+  },
+  "auth": {
+    "pageTitle": "Sign in",
+    "heading": "Sign in to CP Trainer",
+    "intro": "We use your GitHub account. No passwords are stored.",
+    "github": "Continue with GitHub",
+    "dev": {
+      "label": "Test user",
+      "button": "Sign in without GitHub",
+      "note": "Local only: AUTH_DEV_LOGIN is on."
+    },
+    "benefits": {
+      "title": "With an account",
+      "progress": "Your rounds, saved on any device",
+      "custom": "Custom: pick subtopics, or play short questions only",
+      "soon": "Soon: lessons one subject at a time, and your progress map"
+    },
+    "claim": "The rounds you played in this browser are added to your account.",
+    "continueWithout": "Continue without an account",
+    "privacy": "We keep your GitHub username, name and avatar, nothing else. You can delete your account anytime from its page.",
+    "unavailable": "Signing in isn't set up on this server yet.",
+    "errors": {
+      "notConfigured": "GitHub sign-in isn't set up on this server.",
+      "cancelled": "You cancelled the GitHub sign-in.",
+      "failed": "GitHub sign-in didn't work. Try again."
+    }
+  },
+  "account": {
+    "pageTitle": "Your account",
+    "since": "Account created on {date}",
+    "rounds": "{count, plural, one {# round finished} other {# rounds finished}}",
+    "devAccount": "Test account (dev login)",
+    "github": "GitHub profile",
+    "logout": "Sign out",
+    "delete": {
+      "heading": "Delete the account",
+      "body": "This deletes your user, your rounds and your answers. It can't be undone.",
+      "confirm": "I understand: delete everything",
+      "button": "Delete my account",
+      "confirmFirst": "Tick the box to confirm.",
+      "done": "Your account and its history were deleted."
+    }
+  },
+  "home": {
+    "pageTitle": "Home",
+    "heading": "What are we practicing today?",
+    "soon": "Soon",
+    "lessons": {
+      "title": "Lessons",
+      "body": "One subject at a time: an explanation, questions about it, then problems."
+    },
+    "quick": {
+      "title": "Quick class",
+      "body": "A round with only what you've learned, review first."
+    }
+  },
+  "custom": {
+    "title": "Custom",
+    "start": "Start",
+    "adjust": "Adjust subjects, subtopics and short questions",
+    "subjectCount": "{count} subjects",
+    "techniqueCount": "{count, plural, one {# subtopic} other {# subtopics}}",
+    "allTechniques": "all subtopics",
+    "drills": {
+      "with": "with short questions",
+      "without": "no short questions",
+      "only": "short questions only"
+    },
+    "subtopics": {
+      "legend": "Subtopics",
+      "of": "Subtopics of {subject}",
+      "hint": "All on by default. Untick what you don't want in the round."
+    },
+    "drillMode": {
+      "legend": "Short questions",
+      "off": "No",
+      "mixed": "With problems",
+      "only": "Only short ones"
+    },
+    "kinds": "Kinds of short questions",
+    "errors": {
+      "subjects": "Pick at least one subject.",
+      "tiers": "Pick at least one difficulty.",
+      "techniques": "Tick at least one subtopic.",
+      "drillKinds": "Tick at least one kind of short question."
+    },
+    "count": {
+      "drillsOnly": "Short questions only · {size} per round",
+      "singleTechnique": "Only one subtopic ({name}): the technique question will be obvious. DP problems still ask the state and transition."
     }
   }
 }

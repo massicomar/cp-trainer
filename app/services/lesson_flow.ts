@@ -9,7 +9,7 @@ import AnswerGrader from '#services/answer_grader'
 import Catalog, { type ProblemBundle, type Taxonomy } from '#services/catalog'
 import DrillBuilder, { type Drill } from '#services/drill_builder'
 import DrillCatalog from '#services/drill_catalog'
-import DrillPlanner, { planItems } from '#services/drill_planner'
+import DrillPlanner, { planDrillsOnly, planItems } from '#services/drill_planner'
 import LessonPlanner from '#services/lesson_planner'
 import type { ReportTarget } from '#services/problem_reports'
 import QuestionBuilder, { type Question } from '#services/question_builder'
@@ -166,18 +166,34 @@ export default class LessonFlow {
   ) {}
 
   /**
-   * Null when nothing matches the selection.
+   * Null when nothing matches the selection. A Custom round of short
+   * questions only has no problems, just drills.
    */
   async create(player: Player, selection: Selection): Promise<Lesson | null> {
-    const problemIds = await this.planner.plan(player.id, selection)
-    if (!problemIds.length) return null
+    const drillsOnly = Boolean(selection.includeDrills && selection.drillsOnly)
+    const kinds = selection.drillKinds ?? null
+
+    let problemIds: string[] = []
+    let items: LessonItem[]
+    if (drillsOnly) {
+      const available = await this.drillPlanner.availability(selection.subjects)
+      items = planDrillsOnly(available, Math.random, kinds)
+      if (!items.length) return null
+    } else {
+      problemIds = await this.planner.plan(player.id, selection)
+      if (!problemIds.length) return null
+      items = selection.includeDrills
+        ? planItems(
+            problemIds,
+            await this.drillPlanner.availability(selection.subjects),
+            Math.random,
+            kinds
+          )
+        : problemIds.map((id) => ({ type: 'problem', id }))
+    }
 
     player.preferences = selection
     await player.save()
-
-    const items: LessonItem[] = selection.includeDrills
-      ? planItems(problemIds, await this.drillPlanner.availability(selection.subjects), Math.random)
-      : problemIds.map((id) => ({ type: 'problem', id }))
 
     return Lesson.create({
       playerId: player.id,
@@ -185,6 +201,9 @@ export default class LessonFlow {
       tiers: selection.tiers,
       includeCommunity: selection.includeCommunity,
       includeDrills: selection.includeDrills,
+      techniqueIds: selection.techniques ?? null,
+      drillKinds: kinds,
+      drillsOnly,
       problemIds,
       items,
       cursorItem: 0,

@@ -6,8 +6,9 @@ import { column, hasMany } from '@adonisjs/lucid/orm'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 
 /**
- * An anonymous player: one browser, identified by the signed `pid` cookie.
- * Created on the first lesson, not on the first page view.
+ * Who plays. Without an account: one browser, identified by the signed `pid`
+ * cookie, created on the first lesson, not on the first page view. With an
+ * account: the user's one player (`userId`), whatever the browser.
  */
 export default class Player extends PlayerSchema {
   static selfAssignPrimaryKey = true

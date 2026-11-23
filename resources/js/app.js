@@ -3,8 +3,28 @@ import htmx from 'htmx.org'
 window.htmx = htmx
 
 /**
+ * Header menus (theme, language): one open at a time; a click outside or
+ * Escape closes them. Without JavaScript they still open and close.
+ */
+document.addEventListener('click', (event) => {
+  for (const picker of document.querySelectorAll('details.picker[open]')) {
+    if (!picker.contains(event.target)) picker.open = false
+  }
+})
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return
+  for (const picker of document.querySelectorAll('details.picker[open]')) {
+    picker.open = false
+    picker.querySelector('summary').focus()
+  }
+})
+
+/**
  * Setup presets ("All subjects", "Only DP", "Same as last time"): tick the
- * matching chips, then fire `change` so HTMX refreshes the match count.
+ * matching chips, then fire `change` so HTMX refreshes the match count. In
+ * the Custom panel, "Same as last time" also restores the subtopics and the
+ * kinds of short questions ("*" ticks them all).
  */
 document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-preset-subjects]')
@@ -15,13 +35,15 @@ document.addEventListener('click', (event) => {
     if (values === undefined) return
     const wanted = values.split(',')
     for (const box of form.querySelectorAll(`input[name="${name}"]`)) {
-      box.checked = wanted.includes(box.value)
+      box.checked = values === '*' || wanted.includes(box.value)
     }
   }
   tick('subjects[]', button.dataset.presetSubjects)
   tick('tiers[]', button.dataset.presetTiers)
   tick('problems', button.dataset.presetProblems)
   tick('drills', button.dataset.presetDrills)
+  tick('techniques[]', button.dataset.presetTechniques)
+  tick('drillKinds[]', button.dataset.presetKinds)
   form.dispatchEvent(new Event('change', { bubbles: true }))
 })
 

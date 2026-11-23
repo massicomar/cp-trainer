@@ -270,37 +270,161 @@ h2 {
   gap: 0.5rem;
 }
 
-/* A segmented control: the pressed button is the current choice. */
-.switch {
-  display: inline-flex;
-  border: 1.5px solid var(--header-border);
-  border-radius: 8px;
-  overflow: hidden;
+/* Theme and language: a closed menu showing the current choice. */
+.picker {
+  position: relative;
 }
 
-.switch button {
-  min-height: 2rem;
+.picker > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
   padding: 0.2rem 0.65rem;
+  border: 1.5px solid var(--header-border);
+  border-radius: 8px;
+  color: var(--header-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.picker > summary::-webkit-details-marker {
+  display: none;
+}
+
+.picker > summary::after {
+  content: '';
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-left: 0.1rem;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translateY(-2px);
+  opacity: 0.7;
+}
+
+.picker > summary:hover,
+.picker[open] > summary {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.picker__icon {
+  flex: none;
+}
+
+.picker__menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 9rem;
+  padding: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgb(5 8 25 / 0.25);
+}
+
+.picker--end .picker__menu {
+  right: 0;
+  left: auto;
+}
+
+.picker__menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.7rem;
   border: 0;
+  border-radius: 8px;
   background: transparent;
-  color: var(--header-muted);
+  color: var(--text);
   font: inherit;
-  font-size: 0.85rem;
+  text-align: left;
   cursor: pointer;
 }
 
-.switch button + button {
-  border-left: 1.5px solid var(--header-border);
+/* A check before the current choice; an empty slot keeps the others aligned. */
+.picker__menu button::before {
+  content: '';
+  flex: none;
+  width: 0.35rem;
+  height: 0.7rem;
+  margin: 0 0.35rem 0.2rem 0.2rem;
+  border: solid transparent;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
 }
 
-.switch button:hover {
-  color: var(--header-text);
+.picker__menu button:hover {
+  background: var(--surface-2);
 }
 
-.switch button[aria-pressed='true'] {
-  background: rgb(255 255 255 / 0.14);
+.picker__menu button[aria-pressed='true'] {
+  font-weight: 700;
+}
+
+.picker__menu button[aria-pressed='true']::before {
+  border-color: currentColor;
+}
+
+/* The signed-in user (avatar + username) or "Sign in". */
+.account-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding: 0.15rem 0.75rem 0.15rem 0.2rem;
+  border: 1.5px solid var(--header-border);
+  border-radius: 999px;
   color: var(--header-text);
   font-weight: 700;
+  text-decoration: none;
+}
+
+.account-chip:hover,
+.account-chip[aria-current='page'] {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.account-chip--signin {
+  padding: 0.15rem 1rem;
+  border-color: var(--header-text);
+}
+
+@media (max-width: 30rem) {
+  .account-chip__name {
+    display: none;
+  }
+
+  .account-chip:not(.account-chip--signin) {
+    padding-right: 0.2rem;
+  }
+}
+
+.avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: #4a5080;
+  color: #ffffff;
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.avatar--large {
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1.8rem;
 }
 
 /* ---- Layout -------------------------------------------------------------- */
@@ -739,6 +863,337 @@ h2 {
     width: 100%;
     justify-content: space-between;
   }
+}
+
+.start__info {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.start__warn {
+  margin: 0;
+  color: var(--warn);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+/* Anonymous home: one line about accounts (plan §12.8). */
+.account-callout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  max-width: 46rem;
+  margin: -0.5rem 0 1.25rem;
+  color: var(--muted);
+}
+
+.account-callout a {
+  font-weight: 700;
+}
+
+/* ---- Account home ---------------------------------------------------------- */
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mode {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  padding: 1.1rem 1.25rem;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(27 31 59 / 0.08);
+}
+
+.mode--quick {
+  background: var(--board);
+  color: var(--board-text);
+}
+
+.mode__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.mode__kicker {
+  margin: 0;
+  font-family: var(--font-condensed);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mode--lessons .mode__kicker {
+  color: light-dark(#b8336a, #f783ac);
+}
+
+.mode--quick .mode__kicker {
+  color: #74c0fc;
+}
+
+.mode__body {
+  margin: 0;
+  color: var(--muted);
+}
+
+.mode--quick .mode__body {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.custom {
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(27 31 59 / 0.08);
+}
+
+.custom__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.custom__text {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.custom__line {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.custom__panel {
+  border-top: 1px solid var(--border);
+}
+
+.custom__panel > summary,
+.subtopics__group > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+}
+
+.custom__panel > summary::-webkit-details-marker,
+.subtopics__group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.custom__panel > summary {
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  color: var(--link);
+}
+
+.custom__panel > summary::after,
+.subtopics__group > summary::after {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border: solid currentColor;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.15s;
+}
+
+.custom__panel[open] > summary::after,
+.subtopics__group[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+
+.custom__panel > .setup {
+  padding: 0.25rem 1.25rem 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  .custom__bar .button,
+  .custom__bar form {
+    width: 100%;
+  }
+}
+
+.subtopics {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.subtopics__group {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 0 0.75rem;
+}
+
+.subtopics__group > summary small {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.subtopics__group > summary::after {
+  margin-left: auto;
+}
+
+.subtopics__group .chips {
+  padding: 0.25rem 0 0.75rem;
+}
+
+.chip.chip--line input:checked + span {
+  border-color: var(--lc, var(--primary));
+  background: color-mix(in srgb, var(--lc, var(--primary)) 14%, var(--surface));
+  color: var(--text);
+}
+
+.chip.chip--line input:checked + span small {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* Short questions: kinds only when they're on; no tiers or subtopics when
+   the round is short questions only. */
+.custom__panel:has(input[name='drills'][value='off']:checked) .drill-kinds,
+.custom__panel:has(input[name='drills'][value='only']:checked) .problems-only {
+  display: none;
+}
+
+/* ---- Sign-in and account --------------------------------------------------- */
+
+.login {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 28rem;
+  margin: 1rem auto;
+  padding: 1.75rem;
+}
+
+.login__head h1 {
+  margin: 0 0 0.3rem;
+}
+
+.login__head p {
+  margin: 0;
+}
+
+.button--github {
+  border-color: #1f2328;
+  background: #1f2328;
+  color: #ffffff;
+}
+
+.login__dev {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+}
+
+.login__benefits {
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.login__benefits ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login__benefits li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.login__benefits .line-badge {
+  min-width: 1.9rem;
+}
+
+.login__claim {
+  margin: 0;
+  font-weight: 600;
+}
+
+.login__privacy {
+  margin: 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.account,
+.account-delete {
+  display: grid;
+  gap: 1rem;
+  max-width: 40rem;
+  margin-bottom: 1rem;
+}
+
+.account__who {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account__names {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+}
+
+.account__display {
+  font-size: 1.3rem;
+}
+
+.account__facts {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.account-delete h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.account-delete p {
+  margin: 0;
+}
+
+.account-delete form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.button--danger {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.button--danger:hover {
+  background: var(--bad-bg);
+  border-color: var(--bad);
 }
 
 /* ---- The round ----------------------------------------------------------- */

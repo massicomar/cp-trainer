@@ -3,10 +3,13 @@
   hx-headers so Shield accepts them. `theme` and `i18n` are shared by
   middleware; error pages rendered outside the router fall back to defaults.
   The look is the Metro direction (D-103): a navy header, subjects as lines.
+  `currentUser` is shared by the player middleware (absent on 404 pages);
+  `canSignIn` is a global (start/view.ts).
 --}}
 @let(pageTitle = $props.get('title'))
 @let(currentTheme = theme || 'system')
 @let(path = request ? request.url() : '')
+@let(LANGUAGES = { en: 'English', es: 'Español' })
 <!DOCTYPE html>
 <html lang="{{ i18n.locale }}" data-theme="{{ currentTheme }}">
   <head>
@@ -25,7 +28,11 @@
         </a>
         <nav class="site-nav" aria-label="{{ t('messages.nav.label') }}">
           <a href="/" {{ path === '/' ? 'aria-current=page' : '' }}>
-            {{ t('messages.setup.pageTitle') }}
+            {{
+              currentUser
+                ? t('messages.nav.home')
+                : t('messages.setup.pageTitle')
+            }}
           </a>
           <a href="/contribute" {{ path.startsWith('/contribute') ? 'aria-current=page' : '' }}>
             {{ t('messages.nav.contribute') }}
@@ -36,34 +43,89 @@
           helper and no switches.
         --}}
         @if(csrfField)
+          {{--
+            Theme and language: each a closed menu that shows the current
+            choice (<details>, so it works without JavaScript; app.js closes it
+            on an outside click or Escape). Every option is a submit button.
+          --}}
           <form class="switches" method="post" action="/preferences">
             {{ csrfField() }}
-            <div class="switch" role="group" aria-label="{{ t('messages.theme.label') }}">
-              @each(option in ['system', 'light', 'dark'])
-                <button
-                  type="submit"
-                  name="theme"
-                  value="{{ option }}"
-                  aria-pressed="{{ currentTheme === option }}"
+            <details class="picker">
+              <summary
+                aria-label="{{ t('messages.theme.label') }}: {{ t(`messages.theme.${currentTheme}`) }}"
+              >
+                @include('partials/theme_icon')
+                <span>{{ t(`messages.theme.${currentTheme}`) }}</span>
+              </summary>
+              <div class="picker__menu" role="group" aria-label="{{ t('messages.theme.label') }}">
+                @each(option in ['system', 'light', 'dark'])
+                  <button
+                    type="submit"
+                    name="theme"
+                    value="{{ option }}"
+                    aria-pressed="{{ currentTheme === option }}"
+                  >
+                    {{ t(`messages.theme.${option}`) }}
+                  </button>
+                @end
+              </div>
+            </details>
+            <details class="picker picker--end">
+              <summary
+                aria-label="{{ t('messages.language.label') }}: {{ LANGUAGES[i18n.locale] }}"
+              >
+                <svg
+                  class="picker__icon"
+                  aria-hidden="true"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
                 >
-                  {{ t(`messages.theme.${option}`) }}
-                </button>
-              @end
-            </div>
-            <div class="switch" role="group" aria-label="{{ t('messages.language.label') }}">
-              @each(option in ['en', 'es'])
-                <button
-                  type="submit"
-                  name="locale"
-                  value="{{ option }}"
-                  aria-pressed="{{ i18n.locale === option }}"
-                  lang="{{ option }}"
-                >
-                  {{ option.toUpperCase() }}
-                </button>
-              @end
-            </div>
+                  <circle cx="12" cy="12" r="9" />
+                  <path
+                    d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"
+                  />
+                </svg>
+                <span>{{ i18n.locale.toUpperCase() }}</span>
+              </summary>
+              <div
+                class="picker__menu"
+                role="group"
+                aria-label="{{ t('messages.language.label') }}"
+              >
+                @each(option in ['en', 'es'])
+                  <button
+                    type="submit"
+                    name="locale"
+                    value="{{ option }}"
+                    aria-pressed="{{ i18n.locale === option }}"
+                    lang="{{ option }}"
+                  >
+                    {{ LANGUAGES[option] }}
+                  </button>
+                @end
+              </div>
+            </details>
           </form>
+        @end
+        @if(currentUser)
+          <a
+            class="account-chip"
+            href="/cuenta"
+            title="{{ t('messages.nav.account') }}"
+            {{ path.startsWith('/cuenta') ? 'aria-current=page' : '' }}
+          >
+            @!avatar({ user: currentUser })
+            <span class="account-chip__name">{{ currentUser.username }}</span>
+          </a>
+        @elseif(canSignIn)
+          <a class="account-chip account-chip--signin" href="/entrar">
+            {{ t('messages.nav.signIn') }}
+          </a>
         @end
       </div>
     </header>

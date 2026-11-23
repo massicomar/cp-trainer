@@ -7,6 +7,7 @@ import { dbAssertions } from '@adonisjs/lucid/plugins/db'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { sessionApiClient } from '@adonisjs/session/plugins/api_client'
 import { shieldApiClient } from '@adonisjs/shield/plugins/api_client'
+import { authApiClient } from '@adonisjs/auth/plugins/api_client'
 
 /**
  * This file is imported by the "bin/test.ts" entrypoint file
@@ -23,6 +24,7 @@ export const plugins: Config['plugins'] = [
   dbAssertions(app),
   sessionApiClient(app),
   shieldApiClient(),
+  authApiClient(app),
 ]
 
 /**

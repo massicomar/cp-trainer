@@ -7,6 +7,7 @@ export type ScannedRoutes = {
     'home': { paramsTuple?: []; params?: {} }
     'selection.count': { paramsTuple?: []; params?: {} }
     'lessons.store': { paramsTuple?: []; params?: {} }
+    'custom.store': { paramsTuple?: []; params?: {} }
     'lessons.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'lessons.answer': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'lessons.give_up': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -19,6 +20,13 @@ export type ScannedRoutes = {
     'contribute.preview': { paramsTuple?: []; params?: {} }
     'contribute.import': { paramsTuple?: []; params?: {} }
     'preferences.update': { paramsTuple?: []; params?: {} }
+    'auth.show': { paramsTuple?: []; params?: {} }
+    'auth.github': { paramsTuple?: []; params?: {} }
+    'auth.github.callback': { paramsTuple?: []; params?: {} }
+    'auth.dev': { paramsTuple?: []; params?: {} }
+    'auth.logout': { paramsTuple?: []; params?: {} }
+    'account.show': { paramsTuple?: []; params?: {} }
+    'account.destroy': { paramsTuple?: []; params?: {} }
     'health': { paramsTuple?: []; params?: {} }
   }
   GET: {
@@ -28,6 +36,10 @@ export type ScannedRoutes = {
     'lessons.summary': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'lessons.report': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'contribute.show': { paramsTuple?: []; params?: {} }
+    'auth.show': { paramsTuple?: []; params?: {} }
+    'auth.github': { paramsTuple?: []; params?: {} }
+    'auth.github.callback': { paramsTuple?: []; params?: {} }
+    'account.show': { paramsTuple?: []; params?: {} }
     'health': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
@@ -37,10 +49,15 @@ export type ScannedRoutes = {
     'lessons.summary': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'lessons.report': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'contribute.show': { paramsTuple?: []; params?: {} }
+    'auth.show': { paramsTuple?: []; params?: {} }
+    'auth.github': { paramsTuple?: []; params?: {} }
+    'auth.github.callback': { paramsTuple?: []; params?: {} }
+    'account.show': { paramsTuple?: []; params?: {} }
     'health': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'lessons.store': { paramsTuple?: []; params?: {} }
+    'custom.store': { paramsTuple?: []; params?: {} }
     'lessons.answer': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'lessons.give_up': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'lessons.skip': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -49,6 +66,9 @@ export type ScannedRoutes = {
     'contribute.preview': { paramsTuple?: []; params?: {} }
     'contribute.import': { paramsTuple?: []; params?: {} }
     'preferences.update': { paramsTuple?: []; params?: {} }
+    'auth.dev': { paramsTuple?: []; params?: {} }
+    'auth.logout': { paramsTuple?: []; params?: {} }
+    'account.destroy': { paramsTuple?: []; params?: {} }
   }
 }
 declare module '@adonisjs/core/types/http' {

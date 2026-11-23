@@ -2,6 +2,7 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import contentConfig from '#config/content'
 import Problem from '#models/problem'
+import type User from '#models/user'
 import Catalog from '#services/catalog'
 import ProblemDraft from '#services/problem_draft'
 import StatementImport from '#services/statement_import'
@@ -38,7 +39,7 @@ export default class ContributeController {
    * The start screen ("From a link" / "Manual" / edit an existing problem),
    * `?new=1` for a blank form, or `?from=<id>` to edit an existing problem.
    */
-  async show({ request, view }: HttpContext) {
+  async show({ request, view, currentUser }: HttpContext) {
     const from = request.input('from')
     const fromId = typeof from === 'string' ? from.trim() : ''
     if (!fromId && !request.input('new')) {
@@ -46,7 +47,7 @@ export default class ContributeController {
       return view.render('pages/contribute_start', { problemIds: problems.map((p) => p.id) })
     }
     const loaded = fromId ? await this.drafts.load(fromId) : null
-    const problem = loaded ?? this.drafts.blank()
+    const problem = loaded ?? withAuthor(this.drafts.blank(), currentUser)
     return view.render(
       'pages/contribute',
       await this.page(problem, {
@@ -60,7 +61,7 @@ export default class ContributeController {
    * POST /contribute/import { url }: the form prefilled from the judge, the
    * manual form for Codeforces / SPOJ, or edit mode if the problem exists.
    */
-  async import({ request, response, session, view, i18n }: HttpContext) {
+  async import({ request, response, session, view, i18n, currentUser }: HttpContext) {
     const url = request.input('url')
     const result = await this.importer.import(typeof url === 'string' ? url : '')
 
@@ -75,7 +76,7 @@ export default class ContributeController {
     const notice: ImportNotice = result.kind === 'fetched' ? 'fetched' : result.reason
     return view.render(
       'pages/contribute',
-      await this.page(result.draft, {
+      await this.page(withAuthor(result.draft, currentUser), {
         editing: null,
         notFound: null,
         notice,
@@ -149,4 +150,13 @@ export default class ContributeController {
       repoUrl: contentConfig.repoUrl,
     }
   }
+}
+
+/**
+ * A new problem's `author` is the signed-in GitHub username (plan §12.9),
+ * unless one is already set. Dev-login names aren't real accounts.
+ */
+function withAuthor(problem: ProblemFile, user: User | null): ProblemFile {
+  if (problem.author || user?.provider !== 'github') return problem
+  return { ...problem, author: user.username }
 }

@@ -25,9 +25,10 @@ const sessionConfig = defineConfig({
 
   /**
    * Define how long to keep the session data alive without
-   * any activity.
+   * any activity. The sign-in lives in the session (config/auth.ts), so
+   * this is how long you stay signed in without playing (D-106).
    */
-  age: '2h',
+  age: '30d',
 
   /**
    * Configuration for session cookie and the

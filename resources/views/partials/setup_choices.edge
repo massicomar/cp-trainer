@@ -1,0 +1,71 @@
+{{--
+  The setup choices both forms share: shortcuts, subjects, difficulty and
+  official / community. Inside the Custom panel (`groups` is set), the
+  "same as last time" shortcut also restores the subtopics and the kinds of
+  short questions, and difficulty and collection hide for short-questions-
+  only rounds (`problems-only`, app.css).
+--}}
+@let(isCustom = Boolean(groups))
+<div class="setup__group">
+  <p class="label" id="presets-label">{{ t('messages.setup.presetsLabel') }}</p>
+  <div class="presets" role="group" aria-labelledby="presets-label">
+    <button type="button" class="preset" data-preset-subjects="{{ presets.all }}">
+      {{ t('messages.setup.presets.all') }}
+    </button>
+    @each(module in presets.modules)
+      <button type="button" class="preset" data-preset-subjects="{{ module.subjects }}">
+        {{ t(`messages.setup.presets.${module.key}`) }}
+      </button>
+    @end
+    @if(presets.dp)
+      <button type="button" class="preset" data-preset-subjects="{{ presets.dp }}">
+        {{ t('messages.setup.presets.dp') }}
+      </button>
+    @end
+    @if(presets.last)
+      @let(last = presets.last)
+      <button
+        type="button"
+        class="preset"
+        data-preset-subjects="{{ last.subjects.join(',') }}"
+        data-preset-tiers="{{ last.tiers.join(',') }}"
+        data-preset-problems="{{ last.includeCommunity ? 'all' : 'official' }}"
+        @if(isCustom)
+          data-preset-drills="{{ last.drillsOnly ? 'only' : last.includeDrills ? 'mixed' : 'off' }}"
+          data-preset-techniques="{{ last.techniques ? last.techniques.join(',') : '*' }}"
+          data-preset-kinds="{{ last.drillKinds ? last.drillKinds.join(',') : '*' }}"
+        @else
+          data-preset-drills="{{ last.includeDrills ? 'on' : 'off' }}"
+        @end
+      >
+        {{ t('messages.setup.presets.last') }}
+      </button>
+    @end
+  </div>
+</div>
+
+<fieldset class="setup__group">
+  <legend class="label">{{ t('messages.setup.subjects') }}</legend>
+  <div class="lines">
+    @each(subject in subjects)
+      @let(l = line(subject.id))
+      <label class="line-card line--{{ l.id }}">
+        <input
+          type="checkbox"
+          name="subjects[]"
+          value="{{ subject.id }}"
+          {{ current.subjects.includes(subject.id) ? 'checked' : '' }}
+        />
+        <span class="line-badge" aria-hidden="true">{{ l.code }}</span>
+        <span class="line-card__text">
+          <span class="line-card__name">{{ subject.name }}</span>
+          <small>{{ t('messages.setup.subjectCount', { count: perSubject[subject.id] ?? 0 }) }}</small>
+        </span>
+        <span class="line-card__check" aria-hidden="true"></span>
+      </label>
+    @end
+  </div>
+  @inputError('subjects')
+    <p class="field-error">{{ t('messages.setup.errors.subjects') }}</p>
+  @end
+</fieldset>

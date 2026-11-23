@@ -4,9 +4,9 @@ import { findOrCreatePlayer } from '#middleware/player_middleware'
 import Lesson from '#models/lesson'
 import LessonFlow from '#services/lesson_flow'
 import { problemReportUrl } from '#services/problem_reports'
-import SessionSelection from '#services/session_selection'
+import SessionSelection, { selectionQuery } from '#services/session_selection'
 import type { Selection } from '#types/play'
-import { createLessonValidator } from '#validators/create_lesson'
+import { createLessonValidator, customRoundValidator } from '#validators/create_lesson'
 
 /**
  * The lesson pages. Every POST works with and without HTMX: HTMX requests get
@@ -35,6 +35,38 @@ export default class LessonsController {
 
     const player = await findOrCreatePlayer(ctx)
     const lesson = await this.flow.create(player, selection)
+    if (!lesson) {
+      session.flash('error', i18n.t('messages.setup.errors.noMatch'))
+      return response.redirect(setupUrl(selection))
+    }
+    return response.redirect(`/lessons/${lesson.id}`)
+  }
+
+  /**
+   * POST /custom (signed in): `saved=1` is the card's one-tap "Start" with
+   * the last selection; otherwise the Custom panel's form.
+   */
+  async custom(ctx: HttpContext) {
+    const { request, response, session, i18n, player } = ctx
+    const [subjects, choices] = await Promise.all([
+      this.selection.visibleSubjects(),
+      this.selection.techniqueChoices(),
+    ])
+    const visibleIds = subjects.map((s) => s.id)
+    const selection = request.input('saved')
+      ? this.selection.startingPoint(player!.preferences, visibleIds, choices)
+      : this.selection.normalize(
+          await request.validateUsing(customRoundValidator),
+          visibleIds,
+          choices
+        )
+
+    const missing = this.selection.missing(selection)
+    if (missing) {
+      session.flash('error', i18n.t(`messages.custom.errors.${missing}`))
+      return response.redirect(setupUrl(selection))
+    }
+    const lesson = await this.flow.create(player!, selection)
     if (!lesson) {
       session.flash('error', i18n.t('messages.setup.errors.noMatch'))
       return response.redirect(setupUrl(selection))
@@ -136,11 +168,9 @@ function inputString({ request }: HttpContext, key: string) {
 /**
  * The setup page pre-filled with a selection.
  */
+/**
+ * The setup page (or, signed in, the open Custom panel) with this selection.
+ */
 function setupUrl(selection: Selection) {
-  const query = new URLSearchParams()
-  for (const subject of selection.subjects) query.append('subjects[]', subject)
-  for (const tier of selection.tiers) query.append('tiers[]', tier)
-  if (!selection.includeCommunity) query.append('problems', 'official')
-  if (!selection.includeDrills) query.append('drills', 'off')
-  return `/?${query}`
+  return `/?${selectionQuery(selection)}`
 }

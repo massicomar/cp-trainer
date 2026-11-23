@@ -4,8 +4,19 @@
     <p class="muted">{{ t('messages.setup.intro', { size: lessonSize }) }}</p>
   </div>
 
+  @flashMessage('notice')
+    <p class="notice notice--ok" role="status">{{ $message }}</p>
+  @end
   @flashMessage('error')
     <p class="notice notice--error" role="alert">{{ $message }}</p>
+  @end
+
+  {{-- Plan §12.8: anonymous play stays as it is, plus one line about accounts. --}}
+  @if(canSignIn)
+    <p class="account-callout">
+      <span>{{ t('messages.setup.account.body') }}</span>
+      <a href="/entrar">{{ t('messages.setup.account.link') }}</a>
+    </p>
   @end
 
   {{--
@@ -26,100 +37,10 @@
     {{ csrfField() }}
     <h2 class="setup__title">{{ t('messages.setup.build') }}</h2>
 
-    <div class="setup__group">
-      <p class="label" id="presets-label">{{ t('messages.setup.presetsLabel') }}</p>
-      <div class="presets" role="group" aria-labelledby="presets-label">
-        <button type="button" class="preset" data-preset-subjects="{{ presets.all }}">
-          {{ t('messages.setup.presets.all') }}
-        </button>
-        @each(module in presets.modules)
-          <button type="button" class="preset" data-preset-subjects="{{ module.subjects }}">
-            {{ t(`messages.setup.presets.${module.key}`) }}
-          </button>
-        @end
-        @if(presets.dp)
-          <button type="button" class="preset" data-preset-subjects="{{ presets.dp }}">
-            {{ t('messages.setup.presets.dp') }}
-          </button>
-        @end
-        @if(presets.last)
-          <button
-            type="button"
-            class="preset"
-            data-preset-subjects="{{ presets.last.subjects.join(',') }}"
-            data-preset-tiers="{{ presets.last.tiers.join(',') }}"
-            data-preset-problems="{{ presets.last.includeCommunity ? 'all' : 'official' }}"
-            data-preset-drills="{{ presets.last.includeDrills ? 'on' : 'off' }}"
-          >
-            {{ t('messages.setup.presets.last') }}
-          </button>
-        @end
-      </div>
-    </div>
-
-    <fieldset class="setup__group">
-      <legend class="label">{{ t('messages.setup.subjects') }}</legend>
-      <div class="lines">
-        @each(subject in subjects)
-          @let(l = line(subject.id))
-          <label class="line-card line--{{ l.id }}">
-            <input
-              type="checkbox"
-              name="subjects[]"
-              value="{{ subject.id }}"
-              {{ current.subjects.includes(subject.id) ? 'checked' : '' }}
-            />
-            <span class="line-badge" aria-hidden="true">{{ l.code }}</span>
-            <span class="line-card__text">
-              <span class="line-card__name">{{ subject.name }}</span>
-              <small>{{ t('messages.setup.subjectCount', { count: perSubject[subject.id] ?? 0 }) }}</small>
-            </span>
-            <span class="line-card__check" aria-hidden="true"></span>
-          </label>
-        @end
-      </div>
-      @inputError('subjects')
-        <p class="field-error">{{ t('messages.setup.errors.subjects') }}</p>
-      @end
-    </fieldset>
+    @include('partials/setup_choices')
 
     <div class="setup__row">
-      <fieldset class="setup__group">
-        <legend class="label">{{ t('messages.setup.difficulty') }}</legend>
-        <div class="segmented">
-          @each(tier in tiers)
-            <label class="segmented__item">
-              <input
-                type="checkbox"
-                name="tiers[]"
-                value="{{ tier }}"
-                {{ current.tiers.includes(tier) ? 'checked' : '' }}
-              />
-              <span>{{ t(`messages.tiers.${tier}`) }}</span>
-            </label>
-          @end
-        </div>
-        @inputError('tiers')
-          <p class="field-error">{{ t('messages.setup.errors.tiers') }}</p>
-        @end
-      </fieldset>
-
-      <fieldset class="setup__group">
-        <legend class="label">{{ t('messages.setup.problems') }}</legend>
-        <div class="segmented">
-          @each(option in ['all', 'official'])
-            <label class="segmented__item">
-              <input
-                type="radio"
-                name="problems"
-                value="{{ option }}"
-                {{ (option === 'all') === current.includeCommunity ? 'checked' : '' }}
-              />
-              <span>{{ t(`messages.setup.collections.${option}`) }}</span>
-            </label>
-          @end
-        </div>
-      </fieldset>
+      @include('partials/setup_filters')
 
       <fieldset class="setup__group">
         <legend class="label">{{ t('messages.setup.drills.legend') }}</legend>

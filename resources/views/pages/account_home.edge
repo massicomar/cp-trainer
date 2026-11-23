@@ -1,0 +1,142 @@
+@layouts.main({ title: t('messages.home.pageTitle') })
+  {{--
+    The account home (plan §12.1, canvas row G). Lecciones and Clase rápida
+    arrive in L3 and L4; until then their cards say "soon". Custom starts the
+    last selection in one tap; its panel has every option (§12.7).
+  --}}
+  @let(drillMode = current.drillsOnly ? 'only' : current.includeDrills ? 'mixed' : 'off')
+  <div class="page-head">
+    <h1>{{ t('messages.home.heading') }}</h1>
+  </div>
+
+  @flashMessage('error')
+    <p class="notice notice--error" role="alert">{{ $message }}</p>
+  @end
+
+  <div class="modes">
+    @each(mode in ['lessons', 'quick'])
+      <section class="mode mode--{{ mode }}" aria-labelledby="mode-{{ mode }}">
+        <div class="mode__head">
+          <h2 class="mode__kicker" id="mode-{{ mode }}">{{ t(`messages.home.${mode}.title`) }}</h2>
+          <span class="badge">{{ t('messages.home.soon') }}</span>
+        </div>
+        <p class="mode__body">{{ t(`messages.home.${mode}.body`) }}</p>
+      </section>
+    @end
+  </div>
+
+  <section class="custom" aria-labelledby="custom-title">
+    <div class="custom__bar">
+      <div class="custom__text">
+        <h2 class="mode__kicker" id="custom-title">{{ t('messages.custom.title') }}</h2>
+        <p class="custom__line">{{ readyLine }}</p>
+      </div>
+      <form method="post" action="/custom">
+        {{ csrfField() }}
+        <input type="hidden" name="saved" value="1" />
+        <button type="submit" class="button button--primary button--big">
+          {{ t('messages.custom.start') }}
+        </button>
+      </form>
+    </div>
+
+    <details class="custom__panel" {{ panelOpen ? 'open' : '' }}>
+      <summary>{{ t('messages.custom.adjust') }}</summary>
+
+      {{-- A subject's subtopics show only while the subject is ticked. --}}
+      <style>
+        @each(group in groups)
+          .custom__panel:not(:has(input[name='subjects[]'][value='{{ group.subject.id }}']:checked)) .subtopics__group--{{ group.subject.id }} { display: none; }
+        @end
+      </style>
+
+      <form
+        id="setup"
+        class="setup"
+        method="post"
+        action="/custom"
+        hx-get="/selection/count"
+        hx-trigger="change"
+        hx-target="#selection-count"
+        hx-swap="outerHTML"
+      >
+        {{ csrfField() }}
+        {{-- The markers tell "no box ticked" from "no filter" (SessionSelection.normalize). --}}
+        <input type="hidden" name="techniqueFilter" value="on" />
+        <input type="hidden" name="drillKindFilter" value="on" />
+
+        @include('partials/setup_choices')
+
+        <fieldset class="setup__group subtopics problems-only">
+          <legend class="label">{{ t('messages.custom.subtopics.legend') }}</legend>
+          <p class="hint">{{ t('messages.custom.subtopics.hint') }}</p>
+          @each(group in groups)
+            @let(l = line(group.subject.id))
+            @let(selected = current.subjects.includes(group.subject.id))
+            @let(narrowed = selected && current.techniques && group.choices.some((c) => !current.techniques.includes(c.id)))
+            <details class="subtopics__group subtopics__group--{{ l.id }} line--{{ l.id }}" {{ narrowed ? 'open' : '' }}>
+              <summary>
+                <span class="line-badge" aria-hidden="true">{{ l.code }}</span>
+                {{ t('messages.custom.subtopics.of', { subject: group.subject.name }) }}
+                <small>{{ group.choices.length }}</small>
+              </summary>
+              <div class="chips">
+                @each(choice in group.choices)
+                  <label class="chip chip--line" lang="en">
+                    <input
+                      type="checkbox"
+                      name="techniques[]"
+                      value="{{ choice.id }}"
+                      {{ !selected || !current.techniques || current.techniques.includes(choice.id) ? 'checked' : '' }}
+                    />
+                    <span>{{ choice.name }} <small>{{ choice.count }}</small></span>
+                  </label>
+                @end
+              </div>
+            </details>
+          @end
+        </fieldset>
+
+        <div class="setup__row">
+          @include('partials/setup_filters')
+
+          <fieldset class="setup__group">
+            <legend class="label">{{ t('messages.custom.drillMode.legend') }}</legend>
+            <div class="segmented">
+              @each(mode in ['off', 'mixed', 'only'])
+                <label class="segmented__item">
+                  <input
+                    type="radio"
+                    name="drills"
+                    value="{{ mode }}"
+                    {{ drillMode === mode ? 'checked' : '' }}
+                  />
+                  <span>{{ t(`messages.custom.drillMode.${mode}`) }}</span>
+                </label>
+              @end
+            </div>
+          </fieldset>
+        </div>
+
+        <fieldset class="setup__group drill-kinds">
+          <legend class="label">{{ t('messages.custom.kinds') }}</legend>
+          <div class="chips">
+            @each(kind in drillKinds)
+              <label class="chip">
+                <input
+                  type="checkbox"
+                  name="drillKinds[]"
+                  value="{{ kind }}"
+                  {{ !current.drillKinds || current.drillKinds.includes(kind) ? 'checked' : '' }}
+                />
+                <span>{{ t(`messages.kinds.${kind}`) }}</span>
+              </label>
+            @end
+          </div>
+        </fieldset>
+
+        @include('partials/selection_count')
+      </form>
+    </details>
+  </section>
+@end

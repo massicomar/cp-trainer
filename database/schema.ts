@@ -100,7 +100,7 @@ export class LayerSchema extends BaseModel {
 }
 
 export class LessonSchema extends BaseModel {
-  static $columns = ['createdAt', 'cursorItem', 'cursorLayer', 'finishedAt', 'id', 'includeCommunity', 'includeDrills', 'items', 'layerStartedAt', 'playerId', 'problemIds', 'status', 'subjectIds', 'tiers'] as const
+  static $columns = ['createdAt', 'cursorItem', 'cursorLayer', 'drillKinds', 'drillsOnly', 'finishedAt', 'id', 'includeCommunity', 'includeDrills', 'items', 'layerStartedAt', 'playerId', 'problemIds', 'status', 'subjectIds', 'techniqueIds', 'tiers'] as const
   $columns = LessonSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -108,6 +108,10 @@ export class LessonSchema extends BaseModel {
   declare cursorItem: number
   @column()
   declare cursorLayer: number
+  @column()
+  declare drillKinds: any | null
+  @column()
+  declare drillsOnly: boolean
   @column.dateTime()
   declare finishedAt: DateTime | null
   @column({ isPrimary: true })
@@ -129,11 +133,13 @@ export class LessonSchema extends BaseModel {
   @column()
   declare subjectIds: any
   @column()
+  declare techniqueIds: any | null
+  @column()
   declare tiers: any
 }
 
 export class PlayerSchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'lastSeenAt', 'preferences'] as const
+  static $columns = ['createdAt', 'id', 'lastSeenAt', 'preferences', 'userId'] as const
   $columns = PlayerSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -143,6 +149,8 @@ export class PlayerSchema extends BaseModel {
   declare lastSeenAt: DateTime
   @column()
   declare preferences: any | null
+  @column()
+  declare userId: number | null
 }
 
 export class ProblemAnswerSchema extends BaseModel {
@@ -252,4 +260,25 @@ export class TechniqueSchema extends BaseModel {
   declare position: number
   @column()
   declare subjectId: string
+}
+
+export class UserSchema extends BaseModel {
+  static $columns = ['avatarUrl', 'createdAt', 'displayName', 'id', 'lastLoginAt', 'provider', 'providerId', 'username'] as const
+  $columns = UserSchema.$columns
+  @column()
+  declare avatarUrl: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare displayName: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare lastLoginAt: DateTime
+  @column()
+  declare provider: string
+  @column()
+  declare providerId: string
+  @column()
+  declare username: string
 }

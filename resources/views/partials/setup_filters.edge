@@ -1,0 +1,37 @@
+{{-- Difficulty and official / community, shared by both setup forms. --}}
+<fieldset class="setup__group problems-only">
+  <legend class="label">{{ t('messages.setup.difficulty') }}</legend>
+  <div class="segmented">
+    @each(tier in tiers)
+      <label class="segmented__item">
+        <input
+          type="checkbox"
+          name="tiers[]"
+          value="{{ tier }}"
+          {{ current.tiers.includes(tier) ? 'checked' : '' }}
+        />
+        <span>{{ t(`messages.tiers.${tier}`) }}</span>
+      </label>
+    @end
+  </div>
+  @inputError('tiers')
+    <p class="field-error">{{ t('messages.setup.errors.tiers') }}</p>
+  @end
+</fieldset>
+
+<fieldset class="setup__group problems-only">
+  <legend class="label">{{ t('messages.setup.problems') }}</legend>
+  <div class="segmented">
+    @each(option in ['all', 'official'])
+      <label class="segmented__item">
+        <input
+          type="radio"
+          name="problems"
+          value="{{ option }}"
+          {{ (option === 'all') === current.includeCommunity ? 'checked' : '' }}
+        />
+        <span>{{ t(`messages.setup.collections.${option}`) }}</span>
+      </label>
+    @end
+  </div>
+</fieldset>

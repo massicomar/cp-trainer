@@ -251,6 +251,27 @@ Days are cut in UTC unless you pass `--tz` or set `APP_TIMEZONE` in `.env.docker
 
 **Locally:** `docker compose --profile local up -d --build` writes the same log to `./logs`. Browse a bit at `https://localhost`, then run `scripts/stats-report.sh ./logs ./stats/cp-trainer` and open `https://localhost/_stats/` (no password locally). Docker Desktop has to be running for both.
 
+## 8. Sign-in with GitHub
+
+Accounts are optional: without these two variables the app only offers anonymous play, and nobody sees a sign-in button. The app asks GitHub for no scopes, so it only reads the public profile (id, username, name, avatar).
+
+1. On GitHub: **Settings → Developer settings → OAuth Apps → New OAuth App**.
+   - Application name: `CP Trainer`
+   - Homepage URL: `https://cp.massi.com.ar`
+   - Authorization callback URL: `https://cp.massi.com.ar/auth/github/callback`
+2. Copy the **Client ID**, then **Generate a new client secret** and copy it (GitHub shows it once).
+3. On the VPS, add both to `.env.docker` and recreate the container, so it reads the new variables:
+
+```bash
+cd ~/sites/cp-trainer/cp-trainer
+nano .env.docker                                 # GITHUB_CLIENT_ID=…  GITHUB_CLIENT_SECRET=…
+docker compose up -d                             # recreates app with the new env
+```
+
+`APP_URL` must be exactly `https://cp.massi.com.ar`: the callback is built from it. Sign-ins last 30 days without a visit (the session cookie). The database migration for accounts runs by itself when the container starts.
+
+**Locally:** either set `AUTH_DEV_LOGIN=true` in `.env` (a "Sign in without GitHub" form on `/entrar`), or make a second OAuth app with homepage `http://localhost:3333` and callback `http://localhost:3333/auth/github/callback`, and put its keys in `.env`. Never set `AUTH_DEV_LOGIN` in `.env.docker`: the app refuses to start with it in production.
+
 ## Day to day
 
 ```bash

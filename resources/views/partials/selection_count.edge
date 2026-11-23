@@ -1,19 +1,44 @@
-{{-- Swapped by HTMX on every chip toggle; also rendered inside the setup form. --}}
+{{--
+  Swapped by HTMX on every change; also rendered inside the setup form and
+  the Custom panel. Custom adds short-questions-only rounds, its own reasons
+  for an incomplete selection, and the one-subtopic warning.
+--}}
 <div id="selection-count" class="start">
-  @if(!complete)
-    <p class="start__count muted">{{ t('messages.setup.count.incomplete') }}</p>
-  @elseif(count === 0)
-    <p class="start__count muted">{{ t('messages.setup.count.none') }}</p>
-  @elseif(count < lessonSize)
-    <p class="start__count">{{ t('messages.setup.count.short', { count, size: lessonSize }) }}</p>
-  @else
-    <p class="start__count">{{ t('messages.setup.count.full', { count, size: lessonSize }) }}</p>
-  @end
+  <div class="start__info">
+    @if(!complete)
+      <p class="start__count muted">
+        {{
+          missing === 'techniques' || missing === 'drillKinds'
+            ? t(`messages.custom.errors.${missing}`)
+            : t('messages.setup.count.incomplete')
+        }}
+      </p>
+    @elseif(drillsOnly)
+      <p class="start__count">
+        {{ t('messages.custom.count.drillsOnly', { size: drillsOnlySize }) }}
+      </p>
+    @elseif(count === 0)
+      <p class="start__count muted">{{ t('messages.setup.count.none') }}</p>
+    @elseif(count < lessonSize)
+      <p class="start__count">{{ t('messages.setup.count.short', { count, size: lessonSize }) }}</p>
+    @else
+      <p class="start__count">{{ t('messages.setup.count.full', { count, size: lessonSize }) }}</p>
+    @end
+    @if(complete && singleTechnique && !drillsOnly)
+      <p class="start__warn" role="status">
+        {{
+          t('messages.custom.count.singleTechnique', {
+            name: singleTechnique,
+          })
+        }}
+      </p>
+    @end
+  </div>
 
   <button
     type="submit"
     class="button button--primary button--big"
-    {{ count === 0 ? 'disabled' : '' }}
+    {{ !complete || (!drillsOnly && count === 0) ? 'disabled' : '' }}
   >
     {{ t('messages.setup.start') }}
     <span class="route-dots" aria-hidden="true"><span></span><span></span><span></span></span>

@@ -1,7 +1,10 @@
 {
   "nav": {
     "contribute": "Contribuir",
-    "label": "Principal"
+    "label": "Principal",
+    "home": "Inicio",
+    "signIn": "Entrar",
+    "account": "Tu cuenta"
   },
   "theme": {
     "label": "Tema",
@@ -50,7 +53,11 @@
     },
     "build": "Arma tu ronda",
     "subjectCount": "{count, plural, one {# problema} other {# problemas}}",
-    "presetsLabel": "Atajos"
+    "presetsLabel": "Atajos",
+    "account": {
+      "body": "Con una cuenta guardas tus rondas en cualquier dispositivo y tienes Custom: subtemas y rondas de solo preguntas cortas. Pronto: lecciones por categoría.",
+      "link": "Entrar"
+    }
   },
   "tiers": {
     "easy": "Fácil",
@@ -103,7 +110,8 @@
       "fits": "Con {bound}, {complexity} son {calc} operaciones, así que entra.",
       "aboutTheLimit": "Con {bound}, {complexity} son {calc} operaciones, más o menos el límite.",
       "tooMany": "Con {bound}, {complexity} serían {calc} operaciones, muchísimas más, así que no entra."
-    }
+    },
+    "numberOf": "Pregunta rápida {number} de {count}"
   },
   "summary": {
     "pageTitle": "Resultados de la ronda",
@@ -279,6 +287,96 @@
       "heading": "Algo salió mal",
       "body": "El servidor tuvo un error. Vuelve a intentarlo o regresa al inicio.",
       "back": "Volver al inicio"
+    }
+  },
+  "auth": {
+    "pageTitle": "Entrar",
+    "heading": "Entra a CP Trainer",
+    "intro": "Usamos tu cuenta de GitHub. No guardamos contraseñas.",
+    "github": "Continuar con GitHub",
+    "dev": {
+      "label": "Usuario de prueba",
+      "button": "Entrar sin GitHub",
+      "note": "Solo local: AUTH_DEV_LOGIN está activado."
+    },
+    "benefits": {
+      "title": "Con tu cuenta",
+      "progress": "Tus rondas, guardadas en cualquier dispositivo",
+      "custom": "Custom: elige subtemas o juega solo preguntas cortas",
+      "soon": "Pronto: lecciones por categoría y tu mapa de progreso"
+    },
+    "claim": "Las rondas que jugaste en este navegador se suman a tu cuenta.",
+    "continueWithout": "Seguir sin cuenta",
+    "privacy": "Guardamos tu usuario, tu nombre y tu avatar de GitHub, nada más. Puedes borrar tu cuenta cuando quieras desde su página.",
+    "unavailable": "El inicio de sesión todavía no está configurado en este servidor.",
+    "errors": {
+      "notConfigured": "El inicio con GitHub no está configurado en este servidor.",
+      "cancelled": "Cancelaste el inicio con GitHub.",
+      "failed": "El inicio con GitHub falló. Inténtalo de nuevo."
+    }
+  },
+  "account": {
+    "pageTitle": "Tu cuenta",
+    "since": "Cuenta creada el {date}",
+    "rounds": "{count, plural, one {# ronda terminada} other {# rondas terminadas}}",
+    "devAccount": "Cuenta de prueba (login de desarrollo)",
+    "github": "Perfil de GitHub",
+    "logout": "Cerrar sesión",
+    "delete": {
+      "heading": "Borrar la cuenta",
+      "body": "Se borran tu usuario, tus rondas y tus respuestas. No se puede deshacer.",
+      "confirm": "Entiendo: borrar todo",
+      "button": "Borrar mi cuenta",
+      "confirmFirst": "Marca la casilla para confirmar.",
+      "done": "Se borró tu cuenta con todo su historial."
+    }
+  },
+  "home": {
+    "pageTitle": "Inicio",
+    "heading": "¿Qué practicamos hoy?",
+    "soon": "Pronto",
+    "lessons": {
+      "title": "Lecciones",
+      "body": "Una categoría a la vez: una explicación, preguntas sobre ella y después problemas."
+    },
+    "quick": {
+      "title": "Clase rápida",
+      "body": "Una ronda solo con lo que ya aprendiste, primero lo que toca repasar."
+    }
+  },
+  "custom": {
+    "title": "Custom",
+    "start": "Empezar",
+    "adjust": "Ajustar categorías, subtemas y preguntas cortas",
+    "subjectCount": "{count} categorías",
+    "techniqueCount": "{count, plural, one {# subtema} other {# subtemas}}",
+    "allTechniques": "todos los subtemas",
+    "drills": {
+      "with": "con preguntas cortas",
+      "without": "sin preguntas cortas",
+      "only": "solo preguntas cortas"
+    },
+    "subtopics": {
+      "legend": "Subtemas",
+      "of": "Subtemas de {subject}",
+      "hint": "Todos activos por defecto. Desmarca lo que no quieras en la ronda."
+    },
+    "drillMode": {
+      "legend": "Preguntas cortas",
+      "off": "No",
+      "mixed": "Con problemas",
+      "only": "Solo cortas"
+    },
+    "kinds": "Tipos de preguntas cortas",
+    "errors": {
+      "subjects": "Elige al menos una categoría.",
+      "tiers": "Elige al menos una dificultad.",
+      "techniques": "Marca al menos un subtema.",
+      "drillKinds": "Marca al menos un tipo de pregunta corta."
+    },
+    "count": {
+      "drillsOnly": "Solo preguntas cortas · {size} por ronda",
+      "singleTechnique": "Un solo subtema ({name}): la pregunta de técnica va a ser obvia. Los problemas de DP igual preguntan el estado y la transición."
     }
   }
 }

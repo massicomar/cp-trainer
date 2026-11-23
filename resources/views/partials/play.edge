@@ -3,8 +3,12 @@
   HTMX swaps this element with the server's response. The progress bar is the
   round's route: finished problems take their subject's line color.
 --}}
-@let(meta =
-  play.type === 'drill'
+@let(meta = play.lesson.drillsOnly
+  ? t('messages.drills.numberOf', {
+      number: play.lesson.cursorItem + 1,
+      count: play.lesson.items.length,
+    })
+  : play.type === 'drill'
     ? t('messages.drills.label')
     : t('messages.play.problemOf', { number: play.problemNumber, count: play.problemCount }))
 <div id="play" class="play play--{{ play.type }}">

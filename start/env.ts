@@ -11,7 +11,7 @@
 
 import { Env } from '@adonisjs/core/env'
 
-export default await Env.create(new URL('../', import.meta.url), {
+const env = await Env.create(new URL('../', import.meta.url), {
   // Node
   NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
   PORT: Env.schema.number(),
@@ -41,4 +41,25 @@ export default await Env.create(new URL('../', import.meta.url), {
   // Time zone that cuts days in `node ace stats` (an IANA name). Defaults to UTC.
   // The stored timestamps stay in UTC either way (TZ above).
   APP_TIMEZONE: Env.schema.string.optional(),
+
+  // Accounts (plan §12.9). The GitHub OAuth app; without it the "Continue
+  // with GitHub" button is hidden. The callback is APP_URL/auth/github/callback.
+  GITHUB_CLIENT_ID: Env.schema.string.optional(),
+  GITHUB_CLIENT_SECRET: Env.schema.string.optional(),
+  // Sign in as a made-up user without GitHub (local work and tests only).
+  AUTH_DEV_LOGIN: Env.schema.boolean.optional(),
 })
+
+assertSafeAuth(env.get('NODE_ENV'), env.get('AUTH_DEV_LOGIN'))
+
+export default env
+
+/**
+ * The dev login lets anyone sign in as anyone, so production refuses to
+ * start with it on.
+ */
+export function assertSafeAuth(nodeEnv: string, devLogin: boolean | undefined) {
+  if (nodeEnv === 'production' && devLogin) {
+    throw new Error('AUTH_DEV_LOGIN must be off in production')
+  }
+}

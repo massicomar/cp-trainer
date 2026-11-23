@@ -1,0 +1,49 @@
+@layouts.main({ title: t('messages.account.pageTitle') })
+  <div class="page-head">
+    <h1>{{ t('messages.account.pageTitle') }}</h1>
+  </div>
+
+  @flashMessage('error')
+    <p class="notice notice--error" role="alert">{{ $message }}</p>
+  @end
+
+  <section class="account card">
+    <div class="account__who">
+      @!avatar({ user, large: true })
+      <div class="account__names">
+        @if(user.displayName)
+          <strong class="account__display">{{ user.displayName }}</strong>
+        @end
+        @if(user.provider === 'github')
+          <a href="https://github.com/{{ user.username }}" target="_blank" rel="noopener noreferrer">
+            {{ '@' + user.username }}
+          </a>
+        @else
+          <span>{{ '@' + user.username }}</span>
+          <span class="badge">{{ t('messages.account.devAccount') }}</span>
+        @end
+      </div>
+    </div>
+    <ul class="account__facts">
+      <li>{{ t('messages.account.since', { date: user.createdAt.setLocale(i18n.locale).toLocaleString({ dateStyle: 'long' }) }) }}</li>
+      <li>{{ t('messages.account.rounds', { count: rounds }) }}</li>
+    </ul>
+    <form method="post" action="/logout">
+      {{ csrfField() }}
+      <button type="submit" class="button">{{ t('messages.account.logout') }}</button>
+    </form>
+  </section>
+
+  <section class="account-delete card" aria-labelledby="delete-title">
+    <h2 id="delete-title">{{ t('messages.account.delete.heading') }}</h2>
+    <p>{{ t('messages.account.delete.body') }}</p>
+    <form method="post" action="/cuenta/borrar">
+      {{ csrfField() }}
+      <label class="check">
+        <input type="checkbox" name="confirm" value="yes" required />
+        <span>{{ t('messages.account.delete.confirm') }}</span>
+      </label>
+      <button type="submit" class="button button--danger">{{ t('messages.account.delete.button') }}</button>
+    </form>
+  </section>
+@end

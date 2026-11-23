@@ -1,0 +1,19 @@
+{{-- A user's GitHub avatar, or their initial for dev-login users. --}}
+@if($props.get('user').avatarUrl)
+  <img
+    class="avatar {{ $props.get('large') ? 'avatar--large' : '' }}"
+    src="{{ $props.get('user').avatarUrl }}"
+    alt=""
+    width="{{ $props.get('large') ? 72 : 28 }}"
+    height="{{ $props.get('large') ? 72 : 28 }}"
+    loading="lazy"
+    referrerpolicy="no-referrer"
+  />
+@else
+  <span
+    class="avatar avatar--initial {{ $props.get('large') ? 'avatar--large' : '' }}"
+    aria-hidden="true"
+  >
+    {{ $props.get('user').username.slice(0, 1).toUpperCase() }}
+  </span>
+@end
