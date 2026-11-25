@@ -8,6 +8,7 @@
 @let(accepted = layer.accepted ?? [])
 @let(es = $props.get('es') ?? {})
 @let(whyEs = es.why ?? {})
+@let(optionsEs = es.options ?? {})
 <div class="layer-editor" data-row data-rows-scope>
   <div class="layer-editor__head">
     <label class="field">
@@ -35,6 +36,13 @@
     <span>{{ t('messages.contribute.layer.prompt') }}</span>
     <input name="{{ prefix }}[prompt]" value="{{ layer.prompt ?? '' }}" class="input" />
   </label>
+  <label class="field">
+    <span>
+      {{ t('messages.contribute.layer.promptEs') }}
+      <small>{{ t('messages.contribute.layer.optional') }}</small>
+    </span>
+    <input name="{{ prefix }}[promptEs]" value="{{ es.prompt ?? '' }}" class="input" lang="es" />
+  </label>
   <p class="hint">{{ t('messages.contribute.layer.optionsHint') }}</p>
   <div class="rows" data-rows="options" data-next="{{ options.length }}">
     @each((option, j) in options)
@@ -42,6 +50,7 @@
         prefix,
         index: j,
         option,
+        textEs: optionsEs[option.id],
         whyEs: whyEs[option.id],
         correct: accepted.includes(option.id),
       })

@@ -60,11 +60,21 @@ export interface ProblemFile {
 }
 
 export interface ProblemSpanish {
+  /** The statement; needed when a ready lesson uses the problem in its apply step. */
+  summary?: string
   explanation?: string
   /** Same order as `traps`; an empty string falls back to the English entry. */
   traps?: string[]
-  /** Keyed by extra layer key; `why` keyed by option id. */
-  layers?: Record<string, { explanation?: string; why?: Record<string, string> }>
+  /** Keyed by extra layer key; `options` and `why` keyed by option id. */
+  layers?: Record<
+    string,
+    {
+      prompt?: string
+      options?: Record<string, string>
+      explanation?: string
+      why?: Record<string, string>
+    }
+  >
 }
 
 export interface TaxonomyFile {

@@ -129,6 +129,7 @@ export default class ContributeController {
         pairWith: problem.pairWith ?? [],
         extraLayers: problem.extraLayers ?? [],
         es: {
+          summary: problem.es?.summary ?? '',
           explanation: problem.es?.explanation ?? '',
           traps: problem.es?.traps ?? [],
           layers: problem.es?.layers ?? {},

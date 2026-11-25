@@ -17,6 +17,14 @@
     placeholder="{{ t('messages.contribute.layer.optionText') }}"
   />
   <input
+    name="{{ name }}[textEs]"
+    value="{{ $props.get('textEs') ?? '' }}"
+    class="input"
+    lang="es"
+    aria-label="{{ t('messages.contribute.layer.optionTextEsLabel') }}"
+    placeholder="{{ t('messages.contribute.layer.optionTextEs') }}"
+  />
+  <input
     name="{{ name }}[why]"
     value="{{ option.why ?? '' }}"
     class="input"

@@ -171,6 +171,13 @@
           <textarea name="summary" class="input" rows="10">{{ problem.summary }}</textarea>
         </label>
         <label class="field">
+          <span>
+            {{ t('messages.contribute.fields.statementEs') }}
+            <small>{{ t('messages.contribute.fields.statementEsHint') }}</small>
+          </span>
+          <textarea name="summaryEs" class="input" rows="4" lang="es">{{ problem.es.summary }}</textarea>
+        </label>
+        <label class="field">
           <span>{{ t('messages.contribute.fields.constraints') }} <small>{{ t('messages.contribute.fields.constraintsHint') }}</small></span>
           <input
             name="constraints[text]"

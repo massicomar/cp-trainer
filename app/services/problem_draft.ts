@@ -98,15 +98,20 @@ export default class ProblemDraft {
         const options = rows(layer?.options)
           .map((option) => ({
             text: text(option?.text),
+            textEs: text(option?.textEs),
             why: text(option?.why),
             whyEs: text(option?.whyEs),
             correct: isOn(option?.correct),
           }))
           .filter((option) => option.text)
         const ids = options.map((_, i) => OPTION_IDS[i] ?? `option${i + 1}`)
-        const whyEs = Object.fromEntries(
-          options.flatMap((option, i) => (option.whyEs ? [[ids[i], option.whyEs]] : []))
-        )
+        const byId = (field: 'textEs' | 'whyEs') =>
+          Object.fromEntries(
+            options.flatMap((option, i) => (option[field] ? [[ids[i], option[field]]] : []))
+          )
+        const optionsEs = byId('textEs')
+        const whyEs = byId('whyEs')
+        const promptEs = text(layer?.promptEs)
         const explanationEs = text(layer?.explanationEs)
         return {
           layer: {
@@ -122,6 +127,8 @@ export default class ProblemDraft {
             explanation: text(layer?.explanation),
           },
           es: {
+            ...(promptEs ? { prompt: promptEs } : {}),
+            ...(Object.keys(optionsEs).length ? { options: optionsEs } : {}),
             ...(explanationEs ? { explanation: explanationEs } : {}),
             ...(Object.keys(whyEs).length ? { why: whyEs } : {}),
           },
@@ -176,6 +183,8 @@ export default class ProblemDraft {
     problem.deprecated = isOn(input.deprecated)
 
     const es: ProblemSpanish = {}
+    const summaryEs = text(input.summaryEs)
+    if (summaryEs) es.summary = summaryEs
     const explanationEs = text(input.explanationEs)
     if (explanationEs) es.explanation = explanationEs
     if (traps.some((row) => row.es)) es.traps = traps.map((row) => row.es)

@@ -374,9 +374,11 @@ export default class ContentLoader {
         err(file, `es.layers: no extra layer with key ${key}`)
         continue
       }
-      for (const id of Object.keys(layer.why ?? {})) {
-        if (!english.options.some((o) => o.id === id)) {
-          err(file, `es.layers.${key}.why: no option ${id}`)
+      for (const field of ['options', 'why'] as const) {
+        for (const id of Object.keys(layer[field] ?? {})) {
+          if (!english.options.some((o) => o.id === id)) {
+            err(file, `es.layers.${key}.${field}: no option ${id}`)
+          }
         }
       }
     }

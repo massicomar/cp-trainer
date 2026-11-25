@@ -1898,9 +1898,15 @@ textarea.input {
   grid-template-columns: auto 1fr 1fr auto;
 }
 
-/* The Spanish "why" goes under the English one. */
+/* The Spanish option text and "why" go under the English ones. */
+.row--option > input[name$='[textEs]'] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
 .row--option > input[name$='[whyEs]'] {
   grid-column: 3;
+  grid-row: 2;
 }
 
 .row--bilingual {
@@ -1913,9 +1919,11 @@ textarea.input {
     grid-template-columns: auto 1fr auto;
   }
 
+  .row--option > input[name$='[textEs]'],
   .row--option > input[name$='[why]'],
   .row--option > input[name$='[whyEs]'] {
     grid-column: 2;
+    grid-row: auto;
   }
 
   .row--bilingual {

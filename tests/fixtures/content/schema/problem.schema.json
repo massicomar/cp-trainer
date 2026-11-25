@@ -123,10 +123,15 @@
       "type": "boolean"
     },
     "es": {
-      "description": "Optional Spanish versions of the texts that explain (shown when the UI is in Spanish). Anything missing falls back to the English text, field by field. Statements, prompts and option texts stay English.",
+      "description": "Optional Spanish versions of the texts (shown when the UI is in Spanish). Anything missing falls back to the English text, field by field. Usually only the texts that explain; a problem used in a lesson's apply step also translates its statement, prompts and options (required once that lesson is ready).",
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "summary": {
+          "description": "The statement in Spanish, translated from summary: same sections (Entrada, Salida), same LaTeX.",
+          "type": "string",
+          "minLength": 1
+        },
         "explanation": { "type": "string", "minLength": 1 },
         "traps": {
           "description": "Same order and number of entries as the English traps. An empty string falls back to the English entry.",
@@ -141,6 +146,13 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
+              "prompt": { "type": "string", "minLength": 1 },
+              "options": {
+                "description": "Option texts, keyed by option id.",
+                "type": "object",
+                "propertyNames": { "pattern": "^[a-z]$" },
+                "additionalProperties": { "type": "string", "minLength": 1 }
+              },
               "explanation": { "type": "string", "minLength": 1 },
               "why": {
                 "description": "Keyed by option id.",
